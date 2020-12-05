@@ -45,7 +45,7 @@
 #define IMAGE_BACK_NUM			4
 
 #define IMAGE_BACK_PATH_END		TEXT(".\\IMAGE\\titlelogo.png")
-#define IMAGE_PLAYER_PATH		TEXT(".\\IMAGE\\player.png")
+#define IMAGE_PLAYER_PATH_YOKO		TEXT(".\\IMAGE\\player_tate.png")
 
 #define IMAGE_ENEMY_PATH		TEXT(".\\IMAGE\\enemy.png")
 
@@ -82,11 +82,12 @@
 
 #define ENEMY_MAX			15
 
-#define GAME_MAP_TATE_MAX	13
+//#define GAME_MAP_TATE_MAX	13
+#define GAME_MAP_TATE_MAX	26
 //#define GAME_MAP_YOKO_MAX	19
 #define GAME_MAP_YOKO_MAX	38
 #define GAME_MAP_KIND_MAX	2
-#define GAME_MAP_PART_MAX	2
+#define GAME_MAP_PART_MAX	3
 #define GAME_MAP_WARP_MAX	10
 
 #define GAME_TIME_LIMIT		180
@@ -94,7 +95,7 @@
 #define GAME_MAP_PATH			TEXT(".\\IMAGE\\MAP\\my_map.png")
 
 #define GAME_GRAVITY		0.1
-#define GAME_JUMP_HEIGHT	1.5
+#define GAME_JUMP_HEIGHT	2.0
 #define GAME_JUMP_SPEED		0.1
 
 #define MAP_DIV_WIDTH		64
@@ -160,7 +161,8 @@ typedef struct STRUCT_I_POINT
 {
 	int x = -1;
 	int y = -1;
-	int kaiso = -1;
+	int part = -1;
+	int scroll = -1;
 }iPOINT;
 
 typedef struct STRUCT_MOUSE
@@ -213,7 +215,7 @@ typedef struct STRUCT_CHARA
 	int CenterX;
 	int CenterY;
 
-	int Kaiso;
+	int Part;
 	int Muki;		//0：上　1：右　2：下　3：左
 
 	MUSIC musicShot[MUSIC_PLAYER_SHOT_MAX];
@@ -359,9 +361,9 @@ MUSIC BGM_TITLE;
 MUSIC BGM_COMP;
 MUSIC BGM_FAIL;
 
-int Scroll = 0;		//0:横 1:縦
+int Scroll;
 
-GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
+GAME_MAP_KIND mapData_Yoko[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 {
 	{
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -370,18 +372,72 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,k,k,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,k,s,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,k,k,
+		k,k,t,s,t,t,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
 		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k
+	},
+	{
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,i,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,o,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k
 	},
 	{
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,o,t,t,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -481,58 +537,58 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	SetDrawScreen(DX_SCREEN_BACK);
 
-	for (int kai = 0; kai < GAME_MAP_PART_MAX; kai++)
+	for (int part = 0; part < GAME_MAP_PART_MAX; part++)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				if (mapData[kai][tate][yoko] == s)
+				if (mapData_Yoko[part][tate][yoko] == s)
 				{
 					startPt.x = mapChip.width * yoko + mapChip.width / 2;
 					startPt.y = mapChip.height * tate + mapChip.height / 2;
-					startPt.kaiso = kai;
+					startPt.part = part;
 				}
 
-				if (mapData[kai][tate][yoko] == g)
+				if (mapData_Yoko[part][tate][yoko] == g)
 				{
 					GoalRect.left = mapChip.width * yoko;
 					GoalRect.top = mapChip.height * tate;
 					GoalRect.right = mapChip.width * (yoko + 1);
 					GoalRect.bottom = mapChip.height * (tate + 1);
 
-					GoalKaiso = kai;
+					GoalKaiso = part;
 				}
 
-				if (mapData[kai][tate][yoko] == e && enemyCnt < ENEMY_MAX)
+				if (mapData_Yoko[part][tate][yoko] == e && enemyCnt < ENEMY_MAX)
 				{
 					enemyPt[enemyCnt].x = mapChip.width * yoko + mapChip.width / 2;
 					enemyPt[enemyCnt].y = mapChip.height * tate + mapChip.height / 2;
-					enemyPt[enemyCnt].kaiso = kai;
+					enemyPt[enemyCnt].part = part;
 					enemy[enemyCnt].view = TRUE;
 					enemyCnt++;
 				}
 
-				if (mapData[kai][tate][yoko] == i && FromWarpCou < GAME_MAP_WARP_MAX)
+				if (mapData_Yoko[part][tate][yoko] == i && FromWarpCou < GAME_MAP_WARP_MAX)
 				{
 					FromWarp[FromWarpCou].x = mapChip.width * yoko;
 					FromWarp[FromWarpCou].y = mapChip.height * tate;
-					FromWarp[FromWarpCou].kaiso = kai;
+					FromWarp[FromWarpCou].part = part;
 					FromWarpCou++;
 				}
 
-				if (mapData[kai][tate][yoko] == o && ToWarpCou < GAME_MAP_WARP_MAX)
+				if (mapData_Yoko[part][tate][yoko] == o && ToWarpCou < GAME_MAP_WARP_MAX)
 				{
 					ToWarp[ToWarpCou].x = mapChip.width * yoko + mapChip.width / 2;
 					ToWarp[ToWarpCou].y = mapChip.height * tate + mapChip.height / 2;
-					ToWarp[ToWarpCou].kaiso = kai;
+					ToWarp[ToWarpCou].part = part;
 					ToWarpCou++;
 				}
 			}
 		}
 	}
 
-	if (startPt.x == -1 || startPt.y == -1 || startPt.kaiso == -1)
+	if (startPt.x == -1 || startPt.y == -1 || startPt.part == -1)
 	{
 		MessageBox(GetMainWindowHandle(), START_ERR_CAPTION, START_ERR_TITLE, MB_OK);	return -1;
 	}
@@ -812,7 +868,7 @@ VOID MY_START_PROC(VOID)
 
 		player.CenterX = startPt.x;
 		player.CenterY = startPt.y;
-		player.Kaiso = startPt.kaiso;
+		player.Part = startPt.part;
 
 		player.image.x = player.CenterX;
 		player.image.y = player.CenterY;
@@ -841,7 +897,7 @@ VOID MY_START_PROC(VOID)
 			enemy[i].image.x = enemy[i].CenterX;
 			enemy[i].image.y = enemy[i].CenterY;
 
-			enemy[i].Kaiso = enemyPt[i].kaiso;
+			enemy[i].Kaiso = enemyPt[i].part;
 		}
 
 		TimeLim = 0;
@@ -1091,7 +1147,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.JumpFlg = FALSE;
 			}
 		}
-		if (player.JumpFlg == FALSE/* && player.JumpCan == FALSE*/)
+		if (player.JumpFlg == FALSE)
 		{
 			player.CenterY += GAME_GRAVITY * player.image.height;
 			player.coll.left = player.CenterX - player.image.width / 2 + 5;
@@ -1115,7 +1171,8 @@ VOID MY_PLAY_PROC(VOID)
 	player.coll.right = player.CenterX + player.image.width / 2 - 5;
 	player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 
-	if (player.image.x >= 0 && player.image.x <= GAME_MAP_YOKO_MAX * mapChip.width)
+	if (player.image.x >= 0 && player.image.x <= GAME_MAP_YOKO_MAX * mapChip.width &&
+		player.image.y >= 0 && player.image.y <= GAME_MAP_TATE_MAX * mapChip.height)
 	{
 		player.image.x = player.CenterX - player.image.width / 2;
 		player.image.y = player.CenterY - player.image.height / 2;
@@ -1127,7 +1184,7 @@ VOID MY_PLAY_PROC(VOID)
 	PlayerRect.right = player.image.x + player.image.width - 40;
 	PlayerRect.bottom = player.image.y + player.image.height - 40;
 
-	if (player.Kaiso == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
+	if (player.Part == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
 	{
 		if (CheckSoundMem(BGM.handle) != 0)
 		{
@@ -1151,17 +1208,18 @@ VOID MY_PLAY_PROC(VOID)
 		From.right = mapChip.width + FromWarp[i].x;
 		From.bottom = mapChip.height + FromWarp[i].y;
 
-		if (player.Kaiso == FromWarp[i].kaiso && MY_CHECK_RECT_COLL(PlayerRect, From) == TRUE)
+		if (player.Part == FromWarp[i].part && MY_CHECK_RECT_COLL(PlayerRect, From) == TRUE)
 		{
-			int work = GetRand(ToWarpCou - 1);
-
-			player.Kaiso = ToWarp[work].kaiso;
-			player.CenterX = ToWarp[work].x;
-			player.CenterY = ToWarp[work].y;
+			player.Part = ToWarp[FromWarp[i].part].part;
+			player.CenterX = ToWarp[FromWarp[i].part].x;
+			player.CenterY = ToWarp[FromWarp[i].part].y;
 			player.coll.left = player.CenterX - player.image.width / 2 + 5;
 			player.coll.top = player.CenterY - player.image.height / 2 + 5;
 			player.coll.right = player.CenterX + player.image.width / 2 - 5;
 			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+
+			if(Scroll == YOKO_SCROLL)Scroll = TATE_SCROLL;
+			else if (Scroll == TATE_SCROLL)Scroll = YOKO_SCROLL;
 
 			for (int cnt = 0; cnt < TAMA_MAX; cnt++)player.tama[cnt].IsDraw = FALSE;
 		}
@@ -1169,7 +1227,7 @@ VOID MY_PLAY_PROC(VOID)
 
 	for (int i = 0; i < enemyCnt; i++)
 	{
-		if (enemy[i].view == TRUE && enemy[i].Kaiso == player.Kaiso)
+		if (enemy[i].view == TRUE && enemy[i].Kaiso == player.Part)
 		{
 			enemy[i].CenterX += enemy[i].MoveAdd;
 			if (MY_CHECK_MAP1_PLAYER_COLL(enemy[i].coll) == TRUE)
@@ -1206,8 +1264,8 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 
-	if (player.image.y > GAME_HEIGHT
-		|| player.image.y + player.image.height < 0)
+	if (Scroll == YOKO_SCROLL && (player.image.y > GAME_HEIGHT
+		|| player.image.y + player.image.height < 0))
 	{
 		if (CheckSoundMem(BGM.handle) != 0)
 		{
@@ -1292,7 +1350,7 @@ VOID MY_PLAY_PROC(VOID)
 
 VOID MY_PLAY_DRAW(VOID)
 {
-	DrawGraph(ImageBack[player.Kaiso].image.x, ImageBack[player.Kaiso].image.y, ImageBack[player.Kaiso].image.handle, TRUE);
+	DrawGraph(ImageBack[player.Part].image.x, ImageBack[player.Part].image.y, ImageBack[player.Part].image.handle, TRUE);
 
 	if (Scroll == YOKO_SCROLL)
 	{
@@ -1303,30 +1361,30 @@ VOID MY_PLAY_DRAW(VOID)
 
 				if (player.CenterX > (GAME_WIDTH / 2) && player.CenterX <= (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
 				{
-					if (player.CenterX - (GAME_WIDTH / 2) - mapChip.width <= map[player.Kaiso][tate][yoko].x &&
-						map[player.Kaiso][tate][yoko].x <= player.CenterX + (GAME_WIDTH / 2) &&
-						0 <= map[player.Kaiso][tate][yoko].y &&
-						map[player.Kaiso][tate][yoko].y < GAME_HEIGHT + mapChip.height)
+					if (player.CenterX - (GAME_WIDTH / 2) - mapChip.width <= map[player.Part][tate][yoko].x &&
+						map[player.Part][tate][yoko].x <= player.CenterX + (GAME_WIDTH / 2) &&
+						0 <= map[player.Part][tate][yoko].y &&
+						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
 						DrawGraph(
-							map[player.Kaiso][tate][yoko].x - (player.CenterX - (GAME_WIDTH / 2)),
-							map[player.Kaiso][tate][yoko].y,
-							mapChip.handle[map[player.Kaiso][tate][yoko].kind],
+							map[player.Part][tate][yoko].x - (player.CenterX - (GAME_WIDTH / 2)),
+							map[player.Part][tate][yoko].y,
+							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 						DrawGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)), player.image.y, player.image.handle, TRUE);
 					}
 				}
 				else if (player.CenterX > (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
 				{
-					if ((GAME_MAP_YOKO_MAX) * mapChip.width - GAME_WIDTH - mapChip.width <= map[player.Kaiso][tate][yoko].x &&
-						map[player.Kaiso][tate][yoko].x <= (GAME_MAP_YOKO_MAX + 1) * mapChip.width &&
-						0 <= map[player.Kaiso][tate][yoko].y &&
-						map[player.Kaiso][tate][yoko].y < GAME_HEIGHT + mapChip.height)
+					if ((GAME_MAP_YOKO_MAX) * mapChip.width - GAME_WIDTH - mapChip.width <= map[player.Part][tate][yoko].x &&
+						map[player.Part][tate][yoko].x <= (GAME_MAP_YOKO_MAX + 1) * mapChip.width &&
+						0 <= map[player.Part][tate][yoko].y &&
+						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
 						DrawGraph(
-							map[player.Kaiso][tate][yoko].x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
-							map[player.Kaiso][tate][yoko].y,
-							mapChip.handle[map[player.Kaiso][tate][yoko].kind],
+							map[player.Part][tate][yoko].x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
+							map[player.Part][tate][yoko].y,
+							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 						DrawGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH), player.image.y, player.image.handle, TRUE);
 					}
@@ -1334,9 +1392,9 @@ VOID MY_PLAY_DRAW(VOID)
 				else
 				{
 						DrawGraph(
-							map[player.Kaiso][tate][yoko].x,
-							map[player.Kaiso][tate][yoko].y,
-							mapChip.handle[map[player.Kaiso][tate][yoko].kind],
+							map[player.Part][tate][yoko].x,
+							map[player.Part][tate][yoko].y,
+							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 						DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
 				}
@@ -1346,9 +1404,56 @@ VOID MY_PLAY_DRAW(VOID)
 
 	if (Scroll == TATE_SCROLL)
 	{
+		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
+		{
+			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
+			{
+
+				if (player.CenterY > (GAME_HEIGHT / 2) && player.CenterY <= (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
+				{
+					if (player.CenterY - (GAME_HEIGHT / 2) - mapChip.height <= map[player.Part][tate][yoko].y &&
+						map[player.Part][tate][yoko].y <= player.CenterY + (GAME_HEIGHT / 2) &&
+						0 <= map[player.Part][tate][yoko].x &&
+						map[player.Part][tate][yoko].x < GAME_WIDTH + mapChip.width)
+					{
+						DrawGraph(
+							map[player.Part][tate][yoko].x,
+							map[player.Part][tate][yoko].y - (player.CenterY - (GAME_HEIGHT / 2)),
+							mapChip.handle[map[player.Part][tate][yoko].kind],
+							TRUE);
+						DrawGraph(player.image.x, player.image.y - (player.CenterY - (GAME_HEIGHT / 2)), player.image.handle, TRUE);
+					}
+				}
+				else if (player.CenterY > (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
+				{
+					if ((GAME_MAP_TATE_MAX) * mapChip.height - GAME_HEIGHT - mapChip.height <= map[player.Part][tate][yoko].y &&
+						map[player.Part][tate][yoko].y <= (GAME_MAP_TATE_MAX + 1) * mapChip.height &&
+						0 <= map[player.Part][tate][yoko].x &&
+						map[player.Part][tate][yoko].x < GAME_WIDTH + mapChip.width)
+					{
+						DrawGraph(
+							map[player.Part][tate][yoko].x,
+							map[player.Part][tate][yoko].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+							mapChip.handle[map[player.Part][tate][yoko].kind],
+							TRUE);
+						DrawGraph(player.image.x, player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT), player.image.handle, TRUE);
+					}
+				}
+				else
+				{
+					DrawGraph(
+						map[player.Part][tate][yoko].x,
+						map[player.Part][tate][yoko].y,
+						mapChip.handle[map[player.Part][tate][yoko].kind],
+						TRUE);
+					DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
+				}
+			}
+		}
+
 		for (int i = 0; i < enemyCnt; i++)
 		{
-			if (enemy[i].view == TRUE && enemy[i].Kaiso == player.Kaiso) {
+			if (enemy[i].view == TRUE && enemy[i].Kaiso == player.Part) {
 				DrawGraph(enemy[i].image.x, enemy[i].image.y, enemy[i].image.handle, TRUE);
 			}
 		}
@@ -1674,11 +1779,11 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageBack_END.y = GAME_HEIGHT / 2 - ImageBack_END.height / 2;
 
 
-	strcpy_s(player.image.path, IMAGE_PLAYER_PATH);
+	strcpy_s(player.image.path, IMAGE_PLAYER_PATH_YOKO);
 	player.image.handle = LoadGraph(player.image.path);
 	if (player.image.handle == -1)
 	{
-		MessageBox(GetMainWindowHandle(), IMAGE_PLAYER_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		MessageBox(GetMainWindowHandle(), IMAGE_PLAYER_PATH_YOKO, IMAGE_LOAD_ERR_TITLE, MB_OK);
 		return(FALSE);
 	}
 	GetGraphSize(player.image.handle, &player.image.width, &player.image.height);
@@ -1686,7 +1791,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	player.image.y = GAME_HEIGHT / 2 - player.image.height / 2;
 	player.CenterX = player.image.x + player.image.width / 2;
 	player.CenterY = player.image.y + player.image.height / 2;
-	player.speed = CHARA_SPEED_LOW;
+	player.speed = CHARA_SPEED_HIGH;
 
 	for (int i = 0; i < ENEMY_MAX; i++)
 	{
@@ -1764,9 +1869,9 @@ BOOL MY_LOAD_IMAGE(VOID)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				mapDataInit[kai][tate][yoko] = mapData[kai][tate][yoko];
+				mapDataInit[kai][tate][yoko] = mapData_Yoko[kai][tate][yoko];
 
-				map[kai][tate][yoko].kind = mapData[kai][tate][yoko];
+				map[kai][tate][yoko].kind = mapData_Yoko[kai][tate][yoko];
 
 				map[kai][tate][yoko].width = mapChip.width;
 				map[kai][tate][yoko].height = mapChip.height;
@@ -1916,7 +2021,7 @@ BOOL MY_CHECK_MAP1_PLAYER_COLL(RECT player_rect)
 		{
 			if (MY_CHECK_RECT_COLL(player_rect, mapColl[tate][yoko]) == TRUE)
 			{
-				if (map[player.Kaiso][tate][yoko].kind == k) { return(TRUE); }
+				if (map[player.Part][tate][yoko].kind == k) { return(TRUE); }
 			}
 		}
 	}

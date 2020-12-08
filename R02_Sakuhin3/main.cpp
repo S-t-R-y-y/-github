@@ -1,5 +1,6 @@
 #include "DxLib.h"
 #include "resource.h"
+#include <vector>
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -40,8 +41,8 @@
 #define IMAGE_END_FAIL_CNT		1
 #define IMAGE_END_FAIL_CNT_MAX	30
 
-#define IMAGE_BACK_PATH			TEXT(".\\IMAGE\\iseki1.png")
-#define IMAGE_BACK_REV_PATH		TEXT(".\\IMAGE\\iseki2.png")
+#define IMAGE_BACK_PATH			TEXT(".\\IMAGE\\forest.png")
+#define IMAGE_BACK_REV_PATH		TEXT(".\\IMAGE\\shiba.png")
 #define IMAGE_BACK_NUM			4
 
 #define IMAGE_BACK_PATH_END		TEXT(".\\IMAGE\\titlelogo.png")
@@ -88,7 +89,6 @@
 #define GAME_MAP_YOKO_MAX	38
 #define GAME_MAP_KIND_MAX	2
 #define GAME_MAP_PART_MAX	3
-#define GAME_MAP_WARP_MAX	10
 
 #define GAME_TIME_LIMIT		180
 
@@ -115,16 +115,19 @@
 
 #define M_PI 3.14159265358979323846
 
+using namespace std;
+
 enum GAME_MAP_KIND
 {
 	n = -1,		//ñ≥
 	k = 10,		//ï«
-	t = 12,		//í òH
+	t = 13,		//í òH
 	s = 5,		//ÉXÉ^Å[Ég
 	g = 11,		//ÉSÅ[Éã
-	e = 13,		//ìG
+	e = 14,		//ìG
 	i = 1,		//äKëwà⁄ìÆ
-	o = 2		//äKëwà⁄ìÆêÊ
+	o = 2,		//äKëwà⁄ìÆêÊ
+	d = 12		//ë¶éÄ
 };
 
 enum GAME_SCENE {
@@ -162,7 +165,6 @@ typedef struct STRUCT_I_POINT
 	int x = -1;
 	int y = -1;
 	int part = -1;
-	int scroll = -1;
 }iPOINT;
 
 typedef struct STRUCT_MOUSE
@@ -216,7 +218,7 @@ typedef struct STRUCT_CHARA
 	int CenterY;
 
 	int Part;
-	int Muki;		//0ÅFè„Å@1ÅFâEÅ@2ÅFâ∫Å@3ÅFç∂
+	double Muki;		//0ÅFëOÅ@+1ÅFâEÅ@-1ÅFç∂
 
 	MUSIC musicShot[MUSIC_PLAYER_SHOT_MAX];
 	int SeCou = 0;
@@ -330,10 +332,10 @@ IMAGE Image_RULE;
 IMAGE ImageBack_END;
 CHARA player;
 
-iPOINT FromWarp[GAME_MAP_WARP_MAX];
-int FromWarpCou = 0;
-iPOINT ToWarp[GAME_MAP_WARP_MAX];
-int ToWarpCou = 0;
+vector<iPOINT> FromWarp;
+vector<iPOINT> ToWarp;
+
+vector<iPOINT> Sokushi;
 
 ENEMY enemy[ENEMY_MAX];
 iPOINT enemyPt[ENEMY_MAX] = { { -1,-1 } };
@@ -369,11 +371,11 @@ GAME_MAP_KIND mapData_Yoko[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_M
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,d,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,s,t,t,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,d,t,d,t,t,t,t,t,t,t,d,t,t,d,t,d,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
 		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -408,10 +410,10 @@ GAME_MAP_KIND mapData_Yoko[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_M
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -569,20 +571,31 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					enemyCnt++;
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == i && FromWarpCou < GAME_MAP_WARP_MAX)
+				if (mapData_Yoko[part][tate][yoko] == i)
 				{
-					FromWarp[FromWarpCou].x = mapChip.width * yoko;
-					FromWarp[FromWarpCou].y = mapChip.height * tate;
-					FromWarp[FromWarpCou].part = part;
-					FromWarpCou++;
+					iPOINT work;
+					work.x = mapChip.width * yoko;
+					work.y = mapChip.height * tate;
+					work.part = part;
+					FromWarp.push_back(work);
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == o && ToWarpCou < GAME_MAP_WARP_MAX)
+				if (mapData_Yoko[part][tate][yoko] == o)
 				{
-					ToWarp[ToWarpCou].x = mapChip.width * yoko + mapChip.width / 2;
-					ToWarp[ToWarpCou].y = mapChip.height * tate + mapChip.height / 2;
-					ToWarp[ToWarpCou].part = part;
-					ToWarpCou++;
+					iPOINT work;
+					work.x = mapChip.width * yoko;
+					work.y = mapChip.height * tate;
+					work.part = part;
+					ToWarp.push_back(work);
+				}
+
+				if (mapData_Yoko[part][tate][yoko] == d)
+				{
+					iPOINT work;
+					work.x = mapChip.width * yoko;
+					work.y = mapChip.height * tate;
+					work.part = part;
+					Sokushi.push_back(work);
 				}
 			}
 		}
@@ -1017,6 +1030,8 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	player.Muki = 0.0;
+
 	TimeLim = GAME_TIME_LIMIT - TimeCou / GAME_FPS;
 	if (TimeLim <= 0)
 	{
@@ -1081,7 +1096,6 @@ VOID MY_PLAY_PROC(VOID)
 			player.coll.top = player.CenterY - player.image.height / 2 + 5;
 			player.coll.right = player.CenterX + player.image.width / 2 - 5;
 			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-			player.Muki = 0;
 			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
 			{
 				player.CenterY += CHARA_SPEED_MIDI;
@@ -1095,7 +1109,6 @@ VOID MY_PLAY_PROC(VOID)
 		player.coll.top = player.CenterY - player.image.height / 2 + 5;
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
 		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		player.Muki = 0;
 		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
 		{
 			player.CenterY -= CHARA_SPEED_MIDI;
@@ -1108,7 +1121,7 @@ VOID MY_PLAY_PROC(VOID)
 		player.coll.top = player.CenterY - player.image.height / 2 + 5;
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
 		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		player.Muki = 0;
+		player.Muki = 1.0;
 		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
 		{
 			player.CenterX -= CHARA_SPEED_MIDI;
@@ -1121,7 +1134,7 @@ VOID MY_PLAY_PROC(VOID)
 		player.coll.top = player.CenterY - player.image.height / 2 + 5;
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
 		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		player.Muki = 0;
+		player.Muki = -1.0;
 		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
 		{
 			player.CenterX += CHARA_SPEED_MIDI;
@@ -1179,10 +1192,10 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	RECT PlayerRect;
-	PlayerRect.left = player.image.x + 40;
-	PlayerRect.top = player.image.y + 40;
-	PlayerRect.right = player.image.x + player.image.width - 40;
-	PlayerRect.bottom = player.image.y + player.image.height - 40;
+	PlayerRect.left = player.image.x + 25;
+	PlayerRect.top = player.image.y + 25;
+	PlayerRect.right = player.image.x + player.image.width - 25;
+	PlayerRect.bottom = player.image.y + player.image.height - 25;
 
 	if (player.Part == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
 	{
@@ -1200,7 +1213,7 @@ VOID MY_PLAY_PROC(VOID)
 		return;
 	}
 
-	for (int i = 0; i < FromWarpCou; i++)
+	for (int i = 0; i < (int)FromWarp.size(); i++)
 	{
 		RECT From;
 		From.left = FromWarp[i].x;
@@ -1223,6 +1236,32 @@ VOID MY_PLAY_PROC(VOID)
 
 			for (int cnt = 0; cnt < TAMA_MAX; cnt++)player.tama[cnt].IsDraw = FALSE;
 		}
+	}
+
+	for (int i = 0; i < (int)Sokushi.size(); i++)
+	{
+		RECT Work;
+		Work.left = Sokushi[i].x;
+		Work.top = Sokushi[i].y;
+		Work.right = mapChip.width + Sokushi[i].x;
+		Work.bottom = mapChip.height + Sokushi[i].y;
+
+		if (player.Part == Sokushi[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+		{
+			if (CheckSoundMem(BGM.handle) != 0)
+			{
+				StopSoundMem(BGM.handle);
+			}
+
+			SetMouseDispFlag(TRUE);
+
+			GameEndKind = GAME_END_FAIL;
+
+			GameScene = GAME_SCENE_END;
+
+			return;
+		}
+
 	}
 
 	for (int i = 0; i < enemyCnt; i++)
@@ -1350,7 +1389,7 @@ VOID MY_PLAY_PROC(VOID)
 
 VOID MY_PLAY_DRAW(VOID)
 {
-	DrawGraph(ImageBack[player.Part].image.x, ImageBack[player.Part].image.y, ImageBack[player.Part].image.handle, TRUE);
+	DrawGraph(ImageBack[player.Part % IMAGE_BACK_NUM].image.x, ImageBack[player.Part % IMAGE_BACK_NUM].image.y, ImageBack[player.Part % IMAGE_BACK_NUM].image.handle, TRUE);
 
 	if (Scroll == YOKO_SCROLL)
 	{
@@ -1371,7 +1410,7 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
-						DrawGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)), player.image.y, player.image.handle, TRUE);
+						DrawRotaGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width/2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 					}
 				}
 				else if (player.CenterX > (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
@@ -1386,7 +1425,7 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
-						DrawGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH), player.image.y, player.image.handle, TRUE);
+						DrawRotaGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 					}
 				}
 				else
@@ -1396,7 +1435,7 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
-						DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
+						DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height/2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 				}
 			}
 		}

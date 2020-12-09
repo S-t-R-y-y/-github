@@ -1593,6 +1593,11 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
+	DrawBox(WINDOW_WIDTH - 155, 15, WINDOW_WIDTH - 45, 75, GetColor(0, 0, 0), TRUE);
+	DrawBox(WINDOW_WIDTH - 150, 20, WINDOW_WIDTH - 50, 70, GetColor(110, 110, 110), TRUE);
+	SetFontSize(48);
+	DrawFormatString(WINDOW_WIDTH - 137, 21, GetColor(255, 255, 255), "%d", TimeLim);
+
 	/*
 	for (int cnt = 0; cnt < (int)enemy[i].tama.size(); cnt++)
 	{

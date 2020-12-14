@@ -1,6 +1,7 @@
 #include "DxLib.h"
 #include "resource.h"
 #include <vector>
+#include <queue>
 
 #define WINDOW_WIDTH 1200
 #define WINDOW_HEIGHT 800
@@ -50,6 +51,10 @@
 
 #define IMAGE_ENEMY_PATH		TEXT(".\\IMAGE\\enemy.png")
 
+#define IMAGE_ITEM_SPEED_PATH		TEXT(".\\IMAGE\\speed.png")
+#define IMAGE_ITEM_MUTEKI_PATH		TEXT(".\\IMAGE\\muteki.png")
+#define IMAGE_ITEM_STOP_PATH		TEXT(".\\IMAGE\\stop.png")
+
 #define MUSIC_LOAD_ERR_TITLE	TEXT("音楽読み込みエラー")
 
 #define MUSIC_BGM_PATH_TITLE		TEXT(".\\MUSIC\\働くオバケ.mp3")
@@ -97,6 +102,9 @@
 
 #define GAME_ENEMY_SHOT_SPAN	1
 
+#define GAME_ITEM_MAX		3
+#define GAME_ITEM_SPEED_UP	3
+
 #define MAP_DIV_WIDTH		64
 #define MAP_DIV_HEIGHT		64
 #define MAP_DIV_TATE		10
@@ -126,7 +134,10 @@ enum GAME_MAP_KIND
 	e = 14,		//敵
 	i = 1,		//階層移動
 	o = 2,		//階層移動先
-	d = 12		//即死
+	d = 12,		//即死
+	u = 15,		//スピードアップアイテム
+	m = 16,		//無敵アイテム
+	p = 17		//ストップアイテム
 };
 
 enum GAME_SCENE {
@@ -157,6 +168,14 @@ enum SCROLL
 {
 	YOKO_SCROLL,
 	TATE_SCROLL
+};
+
+enum ITEM_TYPE
+{
+	ITEM_NONE = -1,
+	ITEM_SPEED = 0,
+	ITEM_MUTEKI = 1,
+	ITEM_STOP = 2
 };
 
 typedef struct STRUCT_I_POINT
@@ -209,6 +228,25 @@ typedef struct STRUCT_TAMA
 	RECT coll;
 }TAMA;
 
+typedef struct STRUCT_ITEM
+{
+	int type;
+	bool view;
+
+	IMAGE image;
+	int CenterX;
+	int CenterY;
+	int Part;
+}ITEM;
+
+typedef struct STRUCT_USE_ITEM
+{
+	bool Use;
+	int Up;
+	int Cou;
+	queue<iPOINT> Plog;
+}USE_ITEM;
+
 typedef struct STRUCT_CHARA
 {
 	IMAGE image;
@@ -219,20 +257,11 @@ typedef struct STRUCT_CHARA
 	int Part;
 	double Muki;		//0：前　+1：右　-1：左
 
-	//MUSIC musicShot[MUSIC_PLAYER_SHOT_MAX];
-	//int SeCou = 0;
-
-	/*
-	BOOL CanShot;
-	int ShotReLoadCnt;
-	int ShotReLoadCntMAX;
-	*/
+	bool Item[GAME_ITEM_MAX];
 
 	BOOL JumpFlg;
 	BOOL JumpCan;
 	float JumpCou;
-
-	//TAMA tama[TAMA_MAX];
 
 	RECT coll;
 }CHARA;
@@ -369,25 +398,37 @@ MUSIC BGM_FAIL;
 
 int Scroll;
 
-GAME_MAP_KIND mapData_Yoko[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
+ITEM itemSpeedTemp;
+ITEM itemMutekiTemp;
+ITEM itemStopTemp;
+
+USE_ITEM Speed;
+USE_ITEM Muteki;
+USE_ITEM Stop;
+
+vector<ITEM> itemSpeed;
+vector<ITEM> itemMuteki;
+vector<ITEM> itemStop;
+
+GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 {
 	{
-		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,d,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,s,t,t,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,m,t,u,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,m,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
+		t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,k,k,k,k,d,d,d,t,t,k,d,k,k,k,d,k,d,k,d,k,d,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -401,26 +442,26 @@ GAME_MAP_KIND mapData_Yoko[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_M
 	},
 	{
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,i,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,e,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,i,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,e,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,e,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,e,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,e,e,e,t,k,t,t,t,e,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,k,t,k,t,k,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,k,k,k,k,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,k,k,t,t,e,t,t,t,k,k,k,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,e,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,e,t,t,k,t,t,t,k,t,k,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,u,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,o,t,t,t,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -532,14 +573,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				if (mapData_Yoko[part][tate][yoko] == s)
+				if (mapData[part][tate][yoko] == s)
 				{
 					startPt.x = mapChip.width * yoko + mapChip.width / 2;
 					startPt.y = mapChip.height * tate + mapChip.height / 2;
 					startPt.part = part;
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == g)
+				if (mapData[part][tate][yoko] == g)
 				{
 					GoalRect.left = mapChip.width * yoko;
 					GoalRect.top = mapChip.height * tate;
@@ -549,7 +590,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					GoalKaiso = part;
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == e)
+				if (mapData[part][tate][yoko] == e)
 				{
 					iPOINT work;
 					work.x = mapChip.width * yoko;
@@ -558,7 +599,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					enemyPt.push_back(work);
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == i)
+				if (mapData[part][tate][yoko] == i)
 				{
 					iPOINT work;
 					work.x = mapChip.width * yoko;
@@ -567,7 +608,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					FromWarp.push_back(work);
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == o)
+				if (mapData[part][tate][yoko] == o)
 				{
 					iPOINT work;
 					work.x = mapChip.width * yoko;
@@ -576,13 +617,52 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					ToWarp.push_back(work);
 				}
 
-				if (mapData_Yoko[part][tate][yoko] == d)
+				if (mapData[part][tate][yoko] == d)
 				{
 					iPOINT work;
 					work.x = mapChip.width * yoko;
 					work.y = mapChip.height * tate;
 					work.part = part;
 					Sokushi.push_back(work);
+				}
+
+				if (mapData[part][tate][yoko] == u)
+				{
+					ITEM work = itemSpeedTemp;
+					work.type = ITEM_SPEED;
+					work.CenterX = mapChip.width * yoko - work.image.width/2;
+					work.CenterY = mapChip.height * tate - work.image.height/2;
+					work.image.x = mapChip.width * yoko;
+					work.image.y = mapChip.height * tate;
+					work.Part = part;
+					work.view = true;
+					itemSpeed.push_back(work);
+				}
+
+				if (mapData[part][tate][yoko] == m)
+				{
+					ITEM work = itemMutekiTemp;
+					work.type = ITEM_MUTEKI;
+					work.CenterX = mapChip.width * yoko - work.image.width / 2;
+					work.CenterY = mapChip.height * tate - work.image.height / 2;
+					work.image.x = mapChip.width * yoko;
+					work.image.y = mapChip.height * tate;
+					work.Part = part;
+					work.view = true;
+					itemMuteki.push_back(work);
+				}
+
+				if (mapData[part][tate][yoko] == p)
+				{
+					ITEM work = itemStopTemp;
+					work.type = ITEM_SPEED;
+					work.CenterX = mapChip.width * yoko - work.image.width / 2;
+					work.CenterY = mapChip.height * tate - work.image.height / 2;
+					work.image.x = mapChip.width * yoko;
+					work.image.y = mapChip.height * tate;
+					work.Part = part;
+					work.view = true;
+					itemStop.push_back(work);
 				}
 			}
 		}
@@ -875,6 +955,23 @@ VOID MY_START_PROC(VOID)
 
 		player.Muki = 0;
 
+		for (int i = 0; i < GAME_ITEM_MAX; i++)player.Item[i] = FALSE;
+
+		for (int i = 0; i < (int)itemSpeed.size(); i++)itemSpeed[i].view = TRUE;
+		for (int i = 0; i < (int)itemMuteki.size(); i++)itemMuteki[i].view = TRUE;
+		for (int i = 0; i < (int)itemStop.size(); i++)itemStop[i].view = TRUE;
+
+		Speed.Cou = 0;
+		Speed.Up = GAME_ITEM_SPEED_UP;
+		Speed.Use = FALSE;
+
+		Muteki.Cou = 0;
+		Muteki.Use = FALSE;
+
+		Stop.Cou = 0;
+		Stop.Use = 0;
+		while (!Stop.Plog.empty())Stop.Plog.pop();
+
 		tamaTemp.IsDraw = FALSE;
 
 		SetMousePoint(player.image.x, player.image.y);
@@ -882,7 +979,7 @@ VOID MY_START_PROC(VOID)
 		for (int i = 0; i < (int)enemyPt.size(); i++) 
 		{
 			ENEMY work = enemyTemp;
-			work.MoveAdd = /*GetRand(2)*/ - 1;
+			work.MoveAdd = /*GetRand(2)*/ - 2;
 
 			work.view = TRUE;
 
@@ -922,6 +1019,9 @@ VOID MY_START_PROC(VOID)
 		case 2:
 			ImageTitleButtonNow.y = ImageTitleButtonEnd.y;
 			GameLoop = FALSE;
+			itemSpeed.clear();
+			itemMuteki.clear();
+			itemStop.clear();
 			break;
 		}
 
@@ -1108,7 +1208,7 @@ VOID MY_PLAY_PROC(VOID)
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
 		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 		player.Muki = 1.0;
-		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width/2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
 		{
 			player.CenterX -= CHARA_SPEED_MIDI;
 		}
@@ -1121,7 +1221,7 @@ VOID MY_PLAY_PROC(VOID)
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
 		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 		player.Muki = -1.0;
-		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width / 2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
 		{
 			player.CenterX += CHARA_SPEED_MIDI;
 		}
@@ -1170,12 +1270,8 @@ VOID MY_PLAY_PROC(VOID)
 	player.coll.right = player.CenterX + player.image.width / 2 - 5;
 	player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 
-	if (player.image.x >= 0 && player.image.x <= GAME_MAP_YOKO_MAX * mapChip.width &&
-		player.image.y >= 0 && player.image.y <= GAME_MAP_TATE_MAX * mapChip.height)
-	{
-		player.image.x = player.CenterX - player.image.width / 2;
-		player.image.y = player.CenterY - player.image.height / 2;
-	}
+	player.image.x = player.CenterX - player.image.width / 2;
+	player.image.y = player.CenterY - player.image.height / 2;
 
 	RECT PlayerRect;
 	PlayerRect.left = player.image.x + 20;
@@ -1248,6 +1344,51 @@ VOID MY_PLAY_PROC(VOID)
 			return;
 		}
 
+	}
+
+	for (int i = 0; i < (int)itemSpeed.size(); i++)
+	{
+		RECT Work;
+		Work.left = itemSpeed[i].image.x;
+		Work.top = itemSpeed[i].image.y;
+		Work.right = mapChip.width + itemSpeed[i].image.x;
+		Work.bottom = mapChip.height + itemSpeed[i].image.y;
+
+		if (player.Part == itemSpeed[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+		{
+			player.Item[ITEM_SPEED] = TRUE;
+			itemSpeed[i].view = FALSE;
+		}
+	}
+
+	for (int i = 0; i < (int)itemMuteki.size(); i++)
+	{
+		RECT Work;
+		Work.left = itemMuteki[i].image.x;
+		Work.top = itemMuteki[i].image.y;
+		Work.right = mapChip.width + itemMuteki[i].image.x;
+		Work.bottom = mapChip.height + itemMuteki[i].image.y;
+
+		if (player.Part == itemMuteki[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+		{
+			player.Item[ITEM_MUTEKI] = TRUE;
+			itemMuteki[i].view = FALSE;
+		}
+	}
+
+	for (int i = 0; i < (int)itemStop.size(); i++)
+	{
+		RECT Work;
+		Work.left = itemStop[i].image.x;
+		Work.top = itemStop[i].image.y;
+		Work.right = mapChip.width + itemStop[i].image.x;
+		Work.bottom = mapChip.height + itemStop[i].image.y;
+
+		if (player.Part == itemStop[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+		{
+			player.Item[ITEM_STOP] = TRUE;
+			itemStop[i].view = FALSE;
+		}
 	}
 
 	for (int i = 0; i < (int)enemy.size(); i++)
@@ -1328,59 +1469,6 @@ VOID MY_PLAY_PROC(VOID)
 		return;
 	}
 
-	/*
-	if (MY_MOUSE_DOWN(MOUSE_INPUT_LEFT) == TRUE)
-	{
-		if (player.CanShot == TRUE)
-		{
-			ChangeVolumeSoundMem(255 * 75 / 100, player.musicShot[player.SeCou].handle);
-			PlaySoundMem(player.musicShot[player.SeCou].handle, DX_PLAYTYPE_BACK);
-			player.SeCou = (player.SeCou + 1) % 4;
-
-			player.CanShot = FALSE;
-
-			for (int cnt = 0; cnt < TAMA_MAX; cnt++)
-			{
-				if (player.tama[cnt].IsDraw == FALSE)
-				{
-					player.tama[cnt].x = player.CenterX - player.tama[cnt].width / 2;
-
-					player.tama[cnt].y = player.CenterY - player.tama[cnt].height / 2;
-
-					player.tama[cnt].coll.left = player.tama[cnt].x;
-					player.tama[cnt].coll.right = player.tama[cnt].x + player.tama[cnt].width;
-					player.tama[cnt].coll.top = player.tama[cnt].y;
-					player.tama[cnt].coll.bottom = player.tama[cnt].y + player.tama[cnt].height;
-
-					player.tama[cnt].IsDraw = TRUE;
-
-					switch (player.Muki)
-					{
-					case 0:
-						player.tama[cnt].speedX = 0;
-						player.tama[cnt].speedY = -CHARA_SPEED_HIGH;
-						break;
-					case 1:
-						player.tama[cnt].speedX = CHARA_SPEED_HIGH;
-						player.tama[cnt].speedY = 0;
-						break;
-					case 2:
-						player.tama[cnt].speedX = 0;
-						player.tama[cnt].speedY = CHARA_SPEED_HIGH;
-						break;
-					case 3:
-						player.tama[cnt].speedX = -CHARA_SPEED_HIGH;
-						player.tama[cnt].speedY = 0;
-						break;
-					}
-
-					break;
-				}
-			}
-		}
-	}
-	*/
-
 	return;
 }
 
@@ -1406,6 +1494,29 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
+
+						for(int i = 0; i < (int)itemSpeed.size(); i++)
+							if(itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+							DrawGraph(
+								itemSpeed[i].image.x - (player.CenterX - (GAME_WIDTH / 2)),
+								itemSpeed[i].image.y,
+								itemSpeed[i].image.handle,
+								TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x - (player.CenterX - (GAME_WIDTH / 2)),
+									itemMuteki[i].image.y,
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x - (player.CenterX - (GAME_WIDTH / 2)),
+									itemStop[i].image.y,
+									itemStop[i].image.handle,
+									TRUE);
+
 						DrawRotaGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width/2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 					}
 				}
@@ -1421,6 +1532,29 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
+
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+							DrawGraph(
+								itemSpeed[i].image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
+								itemSpeed[i].image.y,
+								itemSpeed[i].image.handle,
+								TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
+									itemMuteki[i].image.y,
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
+									itemStop[i].image.y,
+									itemStop[i].image.handle,
+									TRUE);
+
 						DrawRotaGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 					}
 				}
@@ -1431,6 +1565,29 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y,
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
+
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+							DrawGraph(
+								itemSpeed[i].image.x,
+								itemSpeed[i].image.y,
+								itemSpeed[i].image.handle,
+								TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x,
+									itemMuteki[i].image.y,
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x,
+									itemStop[i].image.y,
+									itemStop[i].image.handle,
+									TRUE);
+
 						DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height/2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 				}
 			}
@@ -1456,6 +1613,29 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y - (player.CenterY - (GAME_HEIGHT / 2)),
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
+
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+							DrawGraph(
+								itemSpeed[i].image.x,
+								itemSpeed[i].image.y - (player.CenterY - (GAME_HEIGHT / 2)),
+								itemSpeed[i].image.handle,
+								TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x,
+									itemMuteki[i].image.y - (player.CenterY - (GAME_HEIGHT / 2)),
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x,
+									itemStop[i].image.y - (player.CenterY - (GAME_HEIGHT / 2)),
+									itemStop[i].image.handle,
+									TRUE);
+
 						DrawGraph(player.image.x, player.image.y - (player.CenterY - (GAME_HEIGHT / 2)), player.image.handle, TRUE);
 
 						for (int i = 0; i < (int)enemy.size(); i++)
@@ -1480,6 +1660,29 @@ VOID MY_PLAY_DRAW(VOID)
 							map[player.Part][tate][yoko].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
+
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+							DrawGraph(
+								itemSpeed[i].image.x,
+								itemSpeed[i].image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+								itemSpeed[i].image.handle,
+								TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x,
+									itemMuteki[i].image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x,
+									itemStop[i].image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+									itemStop[i].image.handle,
+									TRUE);
+
 						DrawGraph(player.image.x, player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT), player.image.handle, TRUE);
 
 						for (int i = 0; i < (int)enemy.size(); i++)
@@ -1500,6 +1703,29 @@ VOID MY_PLAY_DRAW(VOID)
 						map[player.Part][tate][yoko].y,
 						mapChip.handle[map[player.Part][tate][yoko].kind],
 						TRUE);
+
+					for (int i = 0; i < (int)itemSpeed.size(); i++)
+						if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+						DrawGraph(
+							itemSpeed[i].image.x,
+							itemSpeed[i].image.y,
+							itemSpeed[i].image.handle,
+							TRUE);
+					for (int i = 0; i < (int)itemMuteki.size(); i++)
+						if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+							DrawGraph(
+								itemMuteki[i].image.x,
+								itemMuteki[i].image.y,
+								itemMuteki[i].image.handle,
+								TRUE);
+					for (int i = 0; i < (int)itemStop.size(); i++)
+						if (itemStop[i].view && itemStop[i].Part == player.Part)
+							DrawGraph(
+								itemStop[i].image.x,
+								itemStop[i].image.y,
+								itemStop[i].image.handle,
+								TRUE);
+
 					DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
 
 					for (int i = 0; i < (int)enemy.size(); i++)
@@ -1593,54 +1819,39 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
+	for (int i = 0; i < GAME_ITEM_MAX; i++)
+	{
+		DrawBox(45 + 64*i, 15, 119 + 64 * i, 89, GetColor(0, 0, 0), TRUE);
+		DrawBox(50 + 64 * i, 20, 114 + 64 * i, 84, GetColor(110, 110, 110), TRUE);
+		if(player.Item[i])
+		{
+			if (i == ITEM_SPEED)
+				DrawGraph(
+					50 + 64 * i,
+					20,
+					itemSpeedTemp.image.handle,
+					TRUE);
+
+			if (i == ITEM_MUTEKI)
+				DrawGraph(
+					50 + 64 * i,
+					20,
+					itemMutekiTemp.image.handle,
+					TRUE);
+
+			if (i == ITEM_STOP)
+				DrawGraph(
+					50 + 64 * i,
+					20,
+					itemStopTemp.image.handle,
+					TRUE);
+		}
+	}
+
 	DrawBox(WINDOW_WIDTH - 155, 15, WINDOW_WIDTH - 45, 75, GetColor(0, 0, 0), TRUE);
 	DrawBox(WINDOW_WIDTH - 150, 20, WINDOW_WIDTH - 50, 70, GetColor(110, 110, 110), TRUE);
 	SetFontSize(48);
 	DrawFormatString(WINDOW_WIDTH - 137, 21, GetColor(255, 255, 255), "%d", TimeLim);
-
-	/*
-	for (int cnt = 0; cnt < (int)enemy[i].tama.size(); cnt++)
-	{
-		if (enemy[i].tama[cnt].IsDraw == TRUE)
-		{
-			DrawGraph(
-				enemy[i].tama[cnt].x,
-				enemy[i].tama[cnt].y,
-				enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind],	TRUE);
-
-			if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX)
-			{
-				enemy[i].tama[cnt].changeImageCnt++;
-			}
-			else
-			{
-				if (enemy[i].tama[cnt].nowImageKind < TAMA_DIV_NUM - 1)
-				{
-					enemy[i].tama[cnt].nowImageKind++;
-				}
-				else
-				{
-					enemy[i].tama[cnt].nowImageKind = 0;
-				}
-
-				enemy[i].tama[cnt].changeImageCnt = 0;
-			}
-
-			if (enemy[i].tama[cnt].y < 0 || enemy[i].tama[cnt].y > GAME_HEIGHT || enemy[i].tama[cnt].x < 0 || enemy[i].tama[cnt].x > GAME_WIDTH)
-			{
-				enemy[i].tama[cnt].IsDraw = FALSE;
-			}
-			else
-			{
-				enemy[i].tama[cnt].x += enemy[i].tama[cnt].speedX;
-				enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
-				enemy[i].tama[cnt].coll.top += enemy[i].tama[cnt].speedY;
-				enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
-				enemy[i].tama[cnt].coll.left += enemy[i].tama[cnt].speedX;
-				enemy[i].tama[cnt].coll.right += enemy[i].tama[cnt].speedX;
-			}
-		}
-	}*/
 
 	return;
 }
@@ -1938,6 +2149,33 @@ BOOL MY_LOAD_IMAGE(VOID)
 	enemyTemp.CenterY = enemyTemp.image.y + enemyTemp.image.height / 2;
 	enemyTemp.speed = CHARA_SPEED_LOW;
 
+	strcpy_s(itemSpeedTemp.image.path, IMAGE_ITEM_SPEED_PATH);
+	itemSpeedTemp.image.handle = LoadGraph(itemSpeedTemp.image.path);
+	if (itemSpeedTemp.image.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_ENEMY_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(itemSpeedTemp.image.handle, &itemSpeedTemp.image.width, &itemSpeedTemp.image.height);
+
+	strcpy_s(itemMutekiTemp.image.path, IMAGE_ITEM_MUTEKI_PATH);
+	itemMutekiTemp.image.handle = LoadGraph(itemMutekiTemp.image.path);
+	if (itemMutekiTemp.image.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_ENEMY_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(itemMutekiTemp.image.handle, &itemMutekiTemp.image.width, &itemMutekiTemp.image.height);
+
+	strcpy_s(itemStopTemp.image.path, IMAGE_ITEM_STOP_PATH);
+	itemStopTemp.image.handle = LoadGraph(itemStopTemp.image.path);
+	if (itemStopTemp.image.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_ENEMY_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(itemStopTemp.image.handle, &itemStopTemp.image.width, &itemStopTemp.image.height);
+
 	int tamaRedRes = LoadDivGraph(TAMA_RED_PATH, TAMA_DIV_NUM, TAMA_DIV_TATE, TAMA_DIV_YOKO, TAMA_DIV_WIDTH, TAMA_DIV_HEIGHT,	&tamaTemp.handle[0]);
 
 	if (tamaRedRes == -1)
@@ -1982,9 +2220,9 @@ BOOL MY_LOAD_IMAGE(VOID)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
-				mapDataInit[kai][tate][yoko] = mapData_Yoko[kai][tate][yoko];
+				mapDataInit[kai][tate][yoko] = mapData[kai][tate][yoko];
 
-				map[kai][tate][yoko].kind = mapData_Yoko[kai][tate][yoko];
+				map[kai][tate][yoko].kind = mapData[kai][tate][yoko];
 
 				map[kai][tate][yoko].width = mapChip.width;
 				map[kai][tate][yoko].height = mapChip.height;
@@ -2031,6 +2269,10 @@ VOID MY_DELETE_IMAGE(VOID)
 
 	DeleteGraph(ImageEndCOMP.image.handle);
 	DeleteGraph(ImageEndFAIL.image.handle);
+
+	DeleteGraph(itemSpeedTemp.image.handle);
+	DeleteGraph(itemMutekiTemp.image.handle);
+	DeleteGraph(itemStopTemp.image.handle);
 
 	for (int i_num = 0; i_num < TAMA_DIV_NUM; i_num++) { DeleteGraph(tamaTemp.handle[i_num]); }
 

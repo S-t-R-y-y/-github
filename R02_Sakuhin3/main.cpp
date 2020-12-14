@@ -1484,7 +1484,7 @@ VOID MY_PLAY_PROC(VOID)
 					return;
 				}
 
-				if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0)
+				if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0 && !Stop.Use)
 				{
 					//ChangeVolumeSoundMem(255 * 75 / 100, enemy.musicShot[player.SeCou].handle);
 					//PlaySoundMem(player.musicShot[player.SeCou].handle, DX_PLAYTYPE_BACK);

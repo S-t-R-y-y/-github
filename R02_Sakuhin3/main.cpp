@@ -102,8 +102,9 @@
 
 #define GAME_ENEMY_SHOT_SPAN	1
 
-#define GAME_ITEM_MAX		3
-#define GAME_ITEM_SPEED_UP	3
+#define GAME_ITEM_USE_TIME		6
+#define GAME_ITEM_MAX			3
+#define GAME_ITEM_SPEED_UP		3
 
 #define MAP_DIV_WIDTH		64
 #define MAP_DIV_HEIGHT		64
@@ -417,7 +418,7 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,m,t,u,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,u,t,m,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
@@ -741,6 +742,9 @@ VOID MY_FPS_UPDATE(VOID)
 	}
 	CountFps++;
 	TimeCou++;
+	if (Speed.Use)Speed.Cou++;
+	if (Muteki.Use)Muteki.Cou++;
+	if (Stop.Use)Stop.Cou++;
 
 	return;
 }
@@ -962,14 +966,18 @@ VOID MY_START_PROC(VOID)
 		for (int i = 0; i < (int)itemStop.size(); i++)itemStop[i].view = TRUE;
 
 		Speed.Cou = 0;
-		Speed.Up = GAME_ITEM_SPEED_UP;
+		Speed.Up = 1;
 		Speed.Use = FALSE;
+		while (!Speed.Plog.empty())Speed.Plog.pop();
 
 		Muteki.Cou = 0;
+		Muteki.Up = 1;
 		Muteki.Use = FALSE;
+		while (!Muteki.Plog.empty())Muteki.Plog.pop();
 
 		Stop.Cou = 0;
-		Stop.Use = 0;
+		Stop.Up = 1;
+		Stop.Use = FALSE;
 		while (!Stop.Plog.empty())Stop.Plog.pop();
 
 		tamaTemp.IsDraw = FALSE;
@@ -1131,18 +1139,204 @@ VOID MY_PLAY_PROC(VOID)
 		GameScene = GAME_SCENE_END;
 
 		return;
-
 	}
 
-	if (mouse.Button[MOUSE_INPUT_RIGHT] == TRUE)
+	if (GAME_ITEM_USE_TIME - Speed.Cou / GAME_FPS <= 0)
 	{
-		iPOINT R_ClickPt = mouse.Point;
+		Speed.Use = FALSE;
+		Speed.Up = 1;
+		Speed.Cou = 0;
+		while (!Speed.Plog.empty())Speed.Plog.pop();
+	}
+	if (GAME_ITEM_USE_TIME - Muteki.Cou / GAME_FPS <= 0)
+	{
+		Muteki.Use = FALSE;
+		Muteki.Up = 1;
+		Muteki.Cou = 0;
+		while (!Muteki.Plog.empty())Muteki.Plog.pop();
+	}
+	if (GAME_ITEM_USE_TIME - Stop.Cou / GAME_FPS <= 0)
+	{
+		Stop.Use = FALSE;
+		Stop.Up = 1;
+		Stop.Cou = 0;
+		while (!Stop.Plog.empty())Stop.Plog.pop();
+	}
 
-		SetMouseDispFlag(TRUE);
 
-		int Ret = MessageBox(GetMainWindowHandle(), MOUSE_R_CLICK_CAPTION, MOUSE_R_CLICK_TITLE, MB_YESNO);
+	for (int SpeedCnt = 0; SpeedCnt < Speed.Up; SpeedCnt++)
+	{
+		if (mouse.Button[MOUSE_INPUT_RIGHT] == TRUE)
+		{
+			iPOINT R_ClickPt = mouse.Point;
 
-		if (Ret == IDYES)
+			SetMouseDispFlag(TRUE);
+
+			int Ret = MessageBox(GetMainWindowHandle(), MOUSE_R_CLICK_CAPTION, MOUSE_R_CLICK_TITLE, MB_YESNO);
+
+			if (Ret == IDYES)
+			{
+				if (CheckSoundMem(BGM.handle) != 0)
+				{
+					StopSoundMem(BGM.handle);
+				}
+
+				SetMouseDispFlag(TRUE);
+
+				GameScene = GAME_SCENE_START;
+				return;
+
+			}
+			else if (Ret == IDNO)
+			{
+				SetMousePoint(R_ClickPt.x, R_ClickPt.y);
+
+				SetMouseDispFlag(FALSE);
+			}
+		}
+
+		if (MY_KEY_DOWN(KEY_INPUT_1) && player.Item[ITEM_SPEED] == TRUE)
+		{
+			player.Item[ITEM_SPEED] = FALSE;
+			Speed.Use = TRUE;
+			Speed.Up = GAME_ITEM_SPEED_UP;
+			Speed.Cou = 0;
+			while (!Speed.Plog.empty())Speed.Plog.pop();
+		}
+		if (MY_KEY_DOWN(KEY_INPUT_2) && player.Item[ITEM_MUTEKI] == TRUE)
+		{
+			player.Item[ITEM_MUTEKI] = FALSE;
+			Muteki.Use = TRUE;
+			Muteki.Up = 1;
+			Muteki.Cou = 0;
+			while (!Muteki.Plog.empty())Muteki.Plog.pop();
+		}
+		if (MY_KEY_DOWN(KEY_INPUT_3) && player.Item[ITEM_STOP] == TRUE)
+		{
+			player.Item[ITEM_STOP] = FALSE;
+			Stop.Use = TRUE;
+			Stop.Up = 1;
+			Stop.Cou = 0;
+			while (!Stop.Plog.empty())Stop.Plog.pop();
+		}
+
+		if (MY_KEY_DOWN(KEY_INPUT_UP) || MY_KEY_DOWN(KEY_INPUT_W))
+		{
+
+			if (Scroll == YOKO_SCROLL)
+			{
+				if (player.JumpFlg == FALSE && player.JumpCan == TRUE)
+				{
+					player.JumpCan = FALSE;
+					player.JumpFlg = TRUE;
+					player.JumpCou = 0.0;
+				}
+			}
+			if (Scroll == TATE_SCROLL)
+			{
+				player.CenterY -= CHARA_SPEED_MIDI;
+				player.coll.left = player.CenterX - player.image.width / 2 + 5;
+				player.coll.top = player.CenterY - player.image.height / 2 + 5;
+				player.coll.right = player.CenterX + player.image.width / 2 - 5;
+				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+				{
+					player.CenterY += CHARA_SPEED_MIDI;
+				}
+			}
+		}
+		if ((MY_KEY_DOWN(KEY_INPUT_DOWN) || MY_KEY_DOWN(KEY_INPUT_S)) && Scroll == TATE_SCROLL)
+		{
+			player.CenterY += CHARA_SPEED_MIDI;
+			player.coll.left = player.CenterX - player.image.width / 2 + 5;
+			player.coll.top = player.CenterY - player.image.height / 2 + 5;
+			player.coll.right = player.CenterX + player.image.width / 2 - 5;
+			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+			{
+				player.CenterY -= CHARA_SPEED_MIDI;
+			}
+		}
+		if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D))
+		{
+			player.CenterX += CHARA_SPEED_MIDI;
+			player.coll.left = player.CenterX - player.image.width / 2 + 5;
+			player.coll.top = player.CenterY - player.image.height / 2 + 5;
+			player.coll.right = player.CenterX + player.image.width / 2 - 5;
+			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+			player.Muki = 1.0;
+			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width / 2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
+			{
+				player.CenterX -= CHARA_SPEED_MIDI;
+			}
+		}
+		if (MY_KEY_DOWN(KEY_INPUT_LEFT) || MY_KEY_DOWN(KEY_INPUT_A))
+		{
+			player.CenterX -= CHARA_SPEED_MIDI;
+			player.coll.left = player.CenterX - player.image.width / 2 + 5;
+			player.coll.top = player.CenterY - player.image.height / 2 + 5;
+			player.coll.right = player.CenterX + player.image.width / 2 - 5;
+			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+			player.Muki = -1.0;
+			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width / 2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
+			{
+				player.CenterX += CHARA_SPEED_MIDI;
+			}
+		}
+		if (Scroll == YOKO_SCROLL && SpeedCnt == 0)
+		{
+			if (player.JumpFlg == TRUE)
+			{
+				player.JumpCou += GAME_JUMP_SPEED;
+				player.CenterY -= GAME_JUMP_SPEED * player.image.height;
+				player.coll.left = player.CenterX - player.image.width / 2 + 5;
+				player.coll.top = player.CenterY - player.image.height / 2 + 5;
+				player.coll.right = player.CenterX + player.image.width / 2 - 5;
+				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+				{
+					player.CenterY += GAME_JUMP_SPEED * player.image.height;
+					player.JumpFlg = FALSE;
+				}
+				if (player.JumpCou > GAME_JUMP_HEIGHT)
+				{
+					player.JumpFlg = FALSE;
+				}
+			}
+			if (player.JumpFlg == FALSE)
+			{
+				player.CenterY += GAME_GRAVITY * player.image.height;
+				player.coll.left = player.CenterX - player.image.width / 2 + 5;
+				player.coll.top = player.CenterY - player.image.height / 2 + 5;
+				player.coll.right = player.CenterX + player.image.width / 2 - 5;
+				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+				{
+					player.CenterY -= GAME_GRAVITY * player.image.height;
+					player.JumpCan = TRUE;
+				}
+				else
+				{
+					player.JumpCan = FALSE;
+				}
+			}
+		}
+
+		player.coll.left = player.CenterX - player.image.width / 2 + 5;
+		player.coll.top = player.CenterY - player.image.height / 2 + 5;
+		player.coll.right = player.CenterX + player.image.width / 2 - 5;
+		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+
+		player.image.x = player.CenterX - player.image.width / 2;
+		player.image.y = player.CenterY - player.image.height / 2;
+
+		RECT PlayerRect;
+		PlayerRect.left = player.image.x + 20;
+		PlayerRect.top = player.image.y + 20;
+		PlayerRect.right = player.image.x + player.image.width - 20;
+		PlayerRect.bottom = player.image.y + player.image.height - 20;
+
+		if (player.Part == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
 			{
@@ -1151,184 +1345,172 @@ VOID MY_PLAY_PROC(VOID)
 
 			SetMouseDispFlag(TRUE);
 
-			GameScene = GAME_SCENE_START;
+			GameEndKind = GAME_END_COMP;
+
+			GameScene = GAME_SCENE_END;
+
 			return;
-
 		}
-		else if (Ret == IDNO)
+
+		for (int i = 0; i < (int)FromWarp.size(); i++)
 		{
-			SetMousePoint(R_ClickPt.x, R_ClickPt.y);
+			RECT From;
+			From.left = FromWarp[i].x;
+			From.top = FromWarp[i].y;
+			From.right = mapChip.width + FromWarp[i].x;
+			From.bottom = mapChip.height + FromWarp[i].y;
 
-			SetMouseDispFlag(FALSE);
-		}
-	}
-
-	if (MY_KEY_DOWN(KEY_INPUT_UP) || MY_KEY_DOWN(KEY_INPUT_W)) 
-	{
-
-		if (Scroll == YOKO_SCROLL)
-		{
-			if (player.JumpFlg == FALSE && player.JumpCan == TRUE)
+			if (player.Part == FromWarp[i].part && MY_CHECK_RECT_COLL(PlayerRect, From) == TRUE)
 			{
-				player.JumpCan = FALSE;
-				player.JumpFlg = TRUE;
-				player.JumpCou = 0.0;
+				player.Part = ToWarp[FromWarp[i].part].part;
+				player.CenterX = ToWarp[FromWarp[i].part].x;
+				player.CenterY = ToWarp[FromWarp[i].part].y;
+				player.coll.left = player.CenterX - player.image.width / 2 + 5;
+				player.coll.top = player.CenterY - player.image.height / 2 + 5;
+				player.coll.right = player.CenterX + player.image.width / 2 - 5;
+				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
+
+				if (Scroll == YOKO_SCROLL)Scroll = TATE_SCROLL;
+				else if (Scroll == TATE_SCROLL)Scroll = YOKO_SCROLL;
+
+				for (int i = 0; i < (int)enemy.size(); i++)enemy[i].tama.clear();
 			}
 		}
-		if (Scroll == TATE_SCROLL)
+
+		for (int i = 0; i < (int)Sokushi.size(); i++)
 		{
-			player.CenterY -= CHARA_SPEED_MIDI;
-			player.coll.left = player.CenterX - player.image.width / 2 + 5;
-			player.coll.top = player.CenterY - player.image.height / 2 + 5;
-			player.coll.right = player.CenterX + player.image.width / 2 - 5;
-			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+			RECT Work;
+			Work.left = Sokushi[i].x;
+			Work.top = Sokushi[i].y;
+			Work.right = mapChip.width + Sokushi[i].x;
+			Work.bottom = mapChip.height + Sokushi[i].y;
+
+			if (player.Part == Sokushi[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE && !Muteki.Use)
 			{
-				player.CenterY += CHARA_SPEED_MIDI;
+				if (CheckSoundMem(BGM.handle) != 0)
+				{
+					StopSoundMem(BGM.handle);
+				}
+
+				SetMouseDispFlag(TRUE);
+
+				GameEndKind = GAME_END_FAIL;
+
+				GameScene = GAME_SCENE_END;
+
+				return;
+			}
+
+		}
+
+		for (int i = 0; i < (int)itemSpeed.size(); i++)
+		{
+			RECT Work;
+			Work.left = itemSpeed[i].image.x;
+			Work.top = itemSpeed[i].image.y;
+			Work.right = mapChip.width + itemSpeed[i].image.x;
+			Work.bottom = mapChip.height + itemSpeed[i].image.y;
+
+			if (player.Part == itemSpeed[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE && itemSpeed[i].view == TRUE)
+			{
+				player.Item[ITEM_SPEED] = TRUE;
+				itemSpeed[i].view = FALSE;
 			}
 		}
-	}
-	if ((MY_KEY_DOWN(KEY_INPUT_DOWN) || MY_KEY_DOWN(KEY_INPUT_S)) && Scroll == TATE_SCROLL)
-	{
-		player.CenterY += CHARA_SPEED_MIDI;
-		player.coll.left = player.CenterX - player.image.width / 2 + 5;
-		player.coll.top = player.CenterY - player.image.height / 2 + 5;
-		player.coll.right = player.CenterX + player.image.width / 2 - 5;
-		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+
+		for (int i = 0; i < (int)itemMuteki.size(); i++)
 		{
-			player.CenterY -= CHARA_SPEED_MIDI;
-		}
-	}
-	if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D)) 
-	{
-		player.CenterX += CHARA_SPEED_MIDI;
-		player.coll.left = player.CenterX - player.image.width / 2 + 5;
-		player.coll.top = player.CenterY - player.image.height / 2 + 5;
-		player.coll.right = player.CenterX + player.image.width / 2 - 5;
-		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		player.Muki = 1.0;
-		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width/2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
-		{
-			player.CenterX -= CHARA_SPEED_MIDI;
-		}
-	}
-	if (MY_KEY_DOWN(KEY_INPUT_LEFT) || MY_KEY_DOWN(KEY_INPUT_A))
-	{
-		player.CenterX -= CHARA_SPEED_MIDI;
-		player.coll.left = player.CenterX - player.image.width / 2 + 5;
-		player.coll.top = player.CenterY - player.image.height / 2 + 5;
-		player.coll.right = player.CenterX + player.image.width / 2 - 5;
-		player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-		player.Muki = -1.0;
-		if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width / 2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
-		{
-			player.CenterX += CHARA_SPEED_MIDI;
-		}
-	}
-	if (Scroll == YOKO_SCROLL)
-	{
-		if (player.JumpFlg ==TRUE) 
-		{
-			player.JumpCou += GAME_JUMP_SPEED;
-			player.CenterY -= GAME_JUMP_SPEED * player.image.height;
-			player.coll.left = player.CenterX - player.image.width / 2 + 5;
-			player.coll.top = player.CenterY - player.image.height / 2 + 5;
-			player.coll.right = player.CenterX + player.image.width / 2 - 5;
-			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+			RECT Work;
+			Work.left = itemMuteki[i].image.x;
+			Work.top = itemMuteki[i].image.y;
+			Work.right = mapChip.width + itemMuteki[i].image.x;
+			Work.bottom = mapChip.height + itemMuteki[i].image.y;
+
+			if (player.Part == itemMuteki[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE && itemMuteki[i].view == TRUE)
 			{
-				player.CenterY += GAME_JUMP_SPEED * player.image.height;
-				player.JumpFlg = FALSE;
-			}
-			if (player.JumpCou > GAME_JUMP_HEIGHT)
-			{
-				player.JumpFlg = FALSE;
+				player.Item[ITEM_MUTEKI] = TRUE;
+				itemMuteki[i].view = FALSE;
 			}
 		}
-		if (player.JumpFlg == FALSE)
+
+		for (int i = 0; i < (int)itemStop.size(); i++)
 		{
-			player.CenterY += GAME_GRAVITY * player.image.height;
-			player.coll.left = player.CenterX - player.image.width / 2 + 5;
-			player.coll.top = player.CenterY - player.image.height / 2 + 5;
-			player.coll.right = player.CenterX + player.image.width / 2 - 5;
-			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+			RECT Work;
+			Work.left = itemStop[i].image.x;
+			Work.top = itemStop[i].image.y;
+			Work.right = mapChip.width + itemStop[i].image.x;
+			Work.bottom = mapChip.height + itemStop[i].image.y;
+
+			if (player.Part == itemStop[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE && itemStop[i].view == TRUE)
 			{
-				player.CenterY -= GAME_GRAVITY * player.image.height;
-				player.JumpCan = TRUE;
-			}
-			else
-			{
-				player.JumpCan = FALSE;
+				player.Item[ITEM_STOP] = TRUE;
+				itemStop[i].view = FALSE;
 			}
 		}
-	}
 
-	player.coll.left = player.CenterX - player.image.width / 2 + 5;
-	player.coll.top = player.CenterY - player.image.height / 2 + 5;
-	player.coll.right = player.CenterX + player.image.width / 2 - 5;
-	player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-
-	player.image.x = player.CenterX - player.image.width / 2;
-	player.image.y = player.CenterY - player.image.height / 2;
-
-	RECT PlayerRect;
-	PlayerRect.left = player.image.x + 20;
-	PlayerRect.top = player.image.y + 20;
-	PlayerRect.right = player.image.x + player.image.width - 20;
-	PlayerRect.bottom = player.image.y + player.image.height - 20;
-
-	if (player.Part == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
-	{
-		if (CheckSoundMem(BGM.handle) != 0)
+		for (int i = 0; i < (int)enemy.size(); i++)
 		{
-			StopSoundMem(BGM.handle);
+			if (enemy[i].view == TRUE && enemy[i].Part == player.Part)
+			{
+				if(SpeedCnt == 0 && !Stop.Use)enemy[i].CenterX += enemy[i].MoveAdd;
+				if (MY_CHECK_MAP1_PLAYER_COLL(enemy[i].coll) == TRUE)
+				{
+					enemy[i].CenterX -= enemy[i].MoveAdd * 2;
+					enemy[i].MoveAdd *= -1;
+				}
+				enemy[i].coll.left = enemy[i].CenterX - enemy[i].image.width / 2;
+				enemy[i].coll.top = enemy[i].CenterY - enemy[i].image.height / 2;
+				enemy[i].coll.right = enemy[i].CenterX + enemy[i].image.width / 2;
+				enemy[i].coll.bottom = enemy[i].CenterY + enemy[i].image.height / 2;
+
+				if (enemy[i].image.x >= 0 && enemy[i].image.x <= GAME_WIDTH)
+				{
+					enemy[i].image.x = enemy[i].CenterX - enemy[i].image.width / 2;
+					enemy[i].image.y = enemy[i].CenterY - enemy[i].image.height / 2;
+				}
+
+				if (MY_CHECK_RECT_COLL(PlayerRect, enemy[i].coll) == TRUE && !Muteki.Use)
+				{
+					if (CheckSoundMem(BGM.handle) != 0)
+					{
+						StopSoundMem(BGM.handle);
+					}
+					SetMouseDispFlag(TRUE);
+
+					GameEndKind = GAME_END_FAIL;
+
+					GameScene = GAME_SCENE_END;
+
+					return;
+				}
+
+				if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0)
+				{
+					//ChangeVolumeSoundMem(255 * 75 / 100, enemy.musicShot[player.SeCou].handle);
+					//PlaySoundMem(player.musicShot[player.SeCou].handle, DX_PLAYTYPE_BACK);
+
+					TAMA work = tamaTemp;
+					work.x = enemy[i].CenterX - work.width / 2;
+
+					work.y = enemy[i].CenterY - work.height / 2;
+
+					work.coll.left = work.x;
+					work.coll.right = work.x + work.width;
+					work.coll.top = work.y;
+					work.coll.bottom = work.y + work.height;
+
+					work.IsDraw = TRUE;
+					work.speedX = 0;
+					work.speedY = CHARA_SPEED_HIGH;
+
+					enemy[i].tama.push_back(work);
+				}
+			}
 		}
 
-		SetMouseDispFlag(TRUE);
 
-		GameEndKind = GAME_END_COMP;
-
-		GameScene = GAME_SCENE_END;
-
-		return;
-	}
-
-	for (int i = 0; i < (int)FromWarp.size(); i++)
-	{
-		RECT From;
-		From.left = FromWarp[i].x;
-		From.top = FromWarp[i].y;
-		From.right = mapChip.width + FromWarp[i].x;
-		From.bottom = mapChip.height + FromWarp[i].y;
-
-		if (player.Part == FromWarp[i].part && MY_CHECK_RECT_COLL(PlayerRect, From) == TRUE)
-		{
-			player.Part = ToWarp[FromWarp[i].part].part;
-			player.CenterX = ToWarp[FromWarp[i].part].x;
-			player.CenterY = ToWarp[FromWarp[i].part].y;
-			player.coll.left = player.CenterX - player.image.width / 2 + 5;
-			player.coll.top = player.CenterY - player.image.height / 2 + 5;
-			player.coll.right = player.CenterX + player.image.width / 2 - 5;
-			player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-
-			if(Scroll == YOKO_SCROLL)Scroll = TATE_SCROLL;
-			else if (Scroll == TATE_SCROLL)Scroll = YOKO_SCROLL;
-
-			for (int i = 0; i < (int)enemy.size(); i++)enemy[i].tama.clear();
-		}
-	}
-
-	for (int i = 0; i < (int)Sokushi.size(); i++)
-	{
-		RECT Work;
-		Work.left = Sokushi[i].x;
-		Work.top = Sokushi[i].y;
-		Work.right = mapChip.width + Sokushi[i].x;
-		Work.bottom = mapChip.height + Sokushi[i].y;
-
-		if (player.Part == Sokushi[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+		if (Scroll == YOKO_SCROLL && (player.image.y > GAME_HEIGHT
+			|| player.image.y + player.image.height < 0))
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
 			{
@@ -1343,130 +1525,6 @@ VOID MY_PLAY_PROC(VOID)
 
 			return;
 		}
-
-	}
-
-	for (int i = 0; i < (int)itemSpeed.size(); i++)
-	{
-		RECT Work;
-		Work.left = itemSpeed[i].image.x;
-		Work.top = itemSpeed[i].image.y;
-		Work.right = mapChip.width + itemSpeed[i].image.x;
-		Work.bottom = mapChip.height + itemSpeed[i].image.y;
-
-		if (player.Part == itemSpeed[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
-		{
-			player.Item[ITEM_SPEED] = TRUE;
-			itemSpeed[i].view = FALSE;
-		}
-	}
-
-	for (int i = 0; i < (int)itemMuteki.size(); i++)
-	{
-		RECT Work;
-		Work.left = itemMuteki[i].image.x;
-		Work.top = itemMuteki[i].image.y;
-		Work.right = mapChip.width + itemMuteki[i].image.x;
-		Work.bottom = mapChip.height + itemMuteki[i].image.y;
-
-		if (player.Part == itemMuteki[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
-		{
-			player.Item[ITEM_MUTEKI] = TRUE;
-			itemMuteki[i].view = FALSE;
-		}
-	}
-
-	for (int i = 0; i < (int)itemStop.size(); i++)
-	{
-		RECT Work;
-		Work.left = itemStop[i].image.x;
-		Work.top = itemStop[i].image.y;
-		Work.right = mapChip.width + itemStop[i].image.x;
-		Work.bottom = mapChip.height + itemStop[i].image.y;
-
-		if (player.Part == itemStop[i].Part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
-		{
-			player.Item[ITEM_STOP] = TRUE;
-			itemStop[i].view = FALSE;
-		}
-	}
-
-	for (int i = 0; i < (int)enemy.size(); i++)
-	{
-		if (enemy[i].view == TRUE && enemy[i].Part == player.Part)
-		{
-			enemy[i].CenterX += enemy[i].MoveAdd;
-			if (MY_CHECK_MAP1_PLAYER_COLL(enemy[i].coll) == TRUE)
-			{
-				enemy[i].CenterX -= enemy[i].MoveAdd * 2;
-				enemy[i].MoveAdd *= -1;
-			}
-			enemy[i].coll.left = enemy[i].CenterX - enemy[i].image.width / 2;
-			enemy[i].coll.top = enemy[i].CenterY - enemy[i].image.height / 2;
-			enemy[i].coll.right = enemy[i].CenterX + enemy[i].image.width / 2;
-			enemy[i].coll.bottom = enemy[i].CenterY + enemy[i].image.height / 2;
-
-			if (enemy[i].image.x >= 0 && enemy[i].image.x <= GAME_WIDTH)
-			{
-				enemy[i].image.x = enemy[i].CenterX - enemy[i].image.width / 2;
-				enemy[i].image.y = enemy[i].CenterY - enemy[i].image.height / 2;
-			}
-
-			if (MY_CHECK_RECT_COLL(PlayerRect, enemy[i].coll) == TRUE)
-			{
-				if (CheckSoundMem(BGM.handle) != 0)
-				{
-					StopSoundMem(BGM.handle);
-				}
-				SetMouseDispFlag(TRUE);
-				
-				GameEndKind = GAME_END_FAIL;
-
-				GameScene = GAME_SCENE_END;
-
-				return;
-			}
-
-			if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0)
-			{
-				//ChangeVolumeSoundMem(255 * 75 / 100, enemy.musicShot[player.SeCou].handle);
-				//PlaySoundMem(player.musicShot[player.SeCou].handle, DX_PLAYTYPE_BACK);
-
-				TAMA work = tamaTemp;
-				work.x = enemy[i].CenterX - work.width / 2;
-
-				work.y = enemy[i].CenterY - work.height / 2;
-
-				work.coll.left = work.x;
-				work.coll.right = work.x + work.width;
-				work.coll.top = work.y;
-				work.coll.bottom = work.y + work.height;
-
-				work.IsDraw = TRUE;
-				work.speedX = 0;
-				work.speedY = CHARA_SPEED_HIGH;
-
-				enemy[i].tama.push_back(work);
-			}
-		}
-	}
-
-
-	if (Scroll == YOKO_SCROLL && (player.image.y > GAME_HEIGHT
-		|| player.image.y + player.image.height < 0))
-	{
-		if (CheckSoundMem(BGM.handle) != 0)
-		{
-			StopSoundMem(BGM.handle);
-		}
-
-		SetMouseDispFlag(TRUE);
-
-		GameEndKind = GAME_END_FAIL;
-
-		GameScene = GAME_SCENE_END;
-
-		return;
 	}
 
 	return;
@@ -1769,11 +1827,11 @@ VOID MY_PLAY_DRAW(VOID)
 							enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
 					}
 
-					if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX)
+					if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX && !Stop.Use)
 					{
 						enemy[i].tama[cnt].changeImageCnt++;
 					}
-					else
+					else if(!Stop.Use)
 					{
 						if (enemy[i].tama[cnt].nowImageKind < TAMA_DIV_NUM - 1)
 						{
@@ -1794,11 +1852,14 @@ VOID MY_PLAY_DRAW(VOID)
 					}
 					else
 					{
-						enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
-						enemy[i].tama[cnt].coll.top += enemy[i].tama[cnt].speedY;
-						enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
+						if (!Stop.Use)
+						{
+							enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
+							enemy[i].tama[cnt].coll.top += enemy[i].tama[cnt].speedY;
+							enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
+						}
 
-						if (MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE)
+						if (MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
 						{
 							if (CheckSoundMem(BGM.handle) != 0)
 							{

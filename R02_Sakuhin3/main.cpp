@@ -531,20 +531,20 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 	{
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,o,t,t,k,k,k,t,t,t,t,t,t,t,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,k,k,k,k,k,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,d,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,o,t,t,k,k,k,t,t,u,t,t,t,k,t,k,k,k,k,t,t,t,t,t,t,t,t,k,k,t,t,t,t,t,k,k,
+		k,k,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,k,d,k,d,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,k,k,
+		k,k,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,t,k,t,k,t,t,t,t,t,t,k,k,k,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -1440,6 +1440,9 @@ VOID MY_PLAY_PROC(VOID)
 				player.coll.right = player.CenterX + player.image.width / 2 - 5;
 				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 
+				player.image.x = player.CenterX - player.image.width / 2;
+				player.image.y = player.CenterY - player.image.height / 2;
+
 				Scroll = mapScroll[player.Part];
 
 				for (int i = 0; i < (int)enemy.size(); i++)enemy[i].tama.clear();
@@ -1578,8 +1581,7 @@ VOID MY_PLAY_PROC(VOID)
 		}
 
 
-		if (Scroll == YOKO_SCROLL && (player.image.y > GAME_HEIGHT
-			/*|| player.image.y + player.image.height < 0*/))
+		if (Scroll == YOKO_SCROLL && player.image.y > GAME_HEIGHT)
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
 			{
@@ -1659,6 +1661,18 @@ VOID MY_PLAY_DRAW(VOID)
 						if(!Speed.Plog.empty())Speed.Plog.pop();
 
 						DrawRotaGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width/2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) - player.image.width/2,
+								player.image.y,
+								player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width + player.image.width / 2,
+								player.image.y + player.image.height,
+								GetColor(200, 200, 255),
+								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
 					}
 				}
 				else if (player.CenterX > (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
@@ -1711,53 +1725,77 @@ VOID MY_PLAY_DRAW(VOID)
 						if (!Speed.Plog.empty())Speed.Plog.pop();
 
 						DrawRotaGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) - player.image.width / 2,
+								player.image.y,
+								player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width + player.image.width / 2,
+								player.image.y + player.image.height,
+								GetColor(200, 200, 255),
+								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
 					}
 				}
 				else
 				{
-						DrawGraph(
-							map[player.Part][tate][yoko].x,
-							map[player.Part][tate][yoko].y,
-							mapChip.handle[map[player.Part][tate][yoko].kind],
-							TRUE);
+					DrawGraph(
+						map[player.Part][tate][yoko].x,
+						map[player.Part][tate][yoko].y,
+						mapChip.handle[map[player.Part][tate][yoko].kind],
+						TRUE);
 
-						for (int i = 0; i < (int)itemSpeed.size(); i++)
-							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+					for (int i = 0; i < (int)itemSpeed.size(); i++)
+						if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
 							DrawGraph(
 								itemSpeed[i].image.x,
 								itemSpeed[i].image.y,
 								itemSpeed[i].image.handle,
 								TRUE);
-						for (int i = 0; i < (int)itemMuteki.size(); i++)
-							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
-								DrawGraph(
-									itemMuteki[i].image.x,
-									itemMuteki[i].image.y,
-									itemMuteki[i].image.handle,
-									TRUE);
-						for (int i = 0; i < (int)itemStop.size(); i++)
-							if (itemStop[i].view && itemStop[i].Part == player.Part)
-								DrawGraph(
-									itemStop[i].image.x,
-									itemStop[i].image.y,
-									itemStop[i].image.handle,
-									TRUE);
+					for (int i = 0; i < (int)itemMuteki.size(); i++)
+						if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+							DrawGraph(
+								itemMuteki[i].image.x,
+								itemMuteki[i].image.y,
+								itemMuteki[i].image.handle,
+								TRUE);
+					for (int i = 0; i < (int)itemStop.size(); i++)
+						if (itemStop[i].view && itemStop[i].Part == player.Part)
+							DrawGraph(
+								itemStop[i].image.x,
+								itemStop[i].image.y,
+								itemStop[i].image.handle,
+								TRUE);
 
-						for (int i = 0; i < (int)Speed.Plog.size(); i++)
-						{
-							CHARA work = Speed.Plog.front();
-							Speed.Plog.pop();
-							Speed.Plog.push(work);
-							if (work.Part == player.Part)
-								DrawRotaGraph(work.image.x + work.image.width / 2,
-									work.image.y + work.image.height / 2,
-									1.0,
-									work.Muki / 18 * M_PI,
-									work.image.handle, TRUE);
-						}
-						if (!Speed.Plog.empty())Speed.Plog.pop();
+					for (int i = 0; i < (int)Speed.Plog.size(); i++)
+					{
+						CHARA work = Speed.Plog.front();
+						Speed.Plog.pop();
+						Speed.Plog.push(work);
+						if (work.Part == player.Part)
+							DrawRotaGraph(work.image.x + work.image.width / 2,
+								work.image.y + work.image.height / 2,
+								1.0,
+								work.Muki / 18 * M_PI,
+								work.image.handle, TRUE);
+					}
+					if (!Speed.Plog.empty())Speed.Plog.pop();
 
-						DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height/2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+					DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+
+					if (Muteki.Use)
+					{
+						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+						DrawBox(player.image.x - player.image.width / 2,
+							player.image.y,
+							player.image.x + player.image.width + player.image.width / 2,
+							player.image.y + player.image.height,
+							GetColor(200, 200, 255),
+							TRUE);
+						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+					}
 				}
 			}
 		}
@@ -1819,6 +1857,18 @@ VOID MY_PLAY_DRAW(VOID)
 
 						DrawGraph(player.image.x, player.image.y - (player.CenterY - (GAME_HEIGHT / 2)), player.image.handle, TRUE);
 
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - player.image.width / 2,
+								player.image.y - (player.CenterY - (GAME_HEIGHT / 2)),
+								player.image.x + player.image.width + player.image.width / 2,
+								player.image.y - (player.CenterY - (GAME_HEIGHT / 2)) + player.image.height,
+								GetColor(200, 200, 255),
+								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
+
 						for (int i = 0; i < (int)enemy.size(); i++)
 						{
 							if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
@@ -1878,6 +1928,18 @@ VOID MY_PLAY_DRAW(VOID)
 
 						DrawGraph(player.image.x, player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT), player.image.handle, TRUE);
 
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - player.image.width / 2,
+								player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+								player.image.x + player.image.width + player.image.width / 2,
+								player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT) + player.image.height,
+								GetColor(200, 200, 255),
+								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
+
 						for (int i = 0; i < (int)enemy.size(); i++)
 						{
 							if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
@@ -1932,6 +1994,18 @@ VOID MY_PLAY_DRAW(VOID)
 					if (!Speed.Plog.empty())Speed.Plog.pop();
 
 					DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
+
+					if (Muteki.Use)
+					{
+						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+						DrawBox(player.image.x - player.image.width / 2,
+							player.image.y,
+							player.image.x + player.image.width + player.image.width / 2,
+							player.image.y + player.image.height,
+							GetColor(200, 200, 255),
+							TRUE);
+						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+					}
 
 					for (int i = 0; i < (int)enemy.size(); i++)
 					{
@@ -2006,7 +2080,7 @@ VOID MY_PLAY_DRAW(VOID)
 							enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
 						}
 
-						if (MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
+						if (enemy[i].Part == player.Part && MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
 						{
 							if (CheckSoundMem(BGM.handle) != 0)
 							{

@@ -98,6 +98,8 @@
 
 #define GAME_MAP_PATH			TEXT(".\\IMAGE\\MAP\\my_map.png")
 
+#define GAME_TENMETSU_SPAN		2
+
 #define GAME_GRAVITY		0.1
 #define GAME_JUMP_HEIGHT	2.0
 #define GAME_JUMP_SPEED		0.1
@@ -138,6 +140,7 @@ enum GAME_MAP_KIND
 	i = 1,		//階層移動
 	o = 2,		//階層移動先
 	d = 12,		//即死
+	b = 18,		//点滅ブロック
 	u = 15,		//スピードアップアイテム
 	m = 16,		//無敵アイテム
 	p = 17		//ストップアイテム
@@ -372,6 +375,8 @@ vector<iPOINT> ToWarp;
 
 vector<iPOINT> Sokushi;
 
+vector<iPOINT> Tenmetsu;
+
 vector<ENEMY> enemy;
 vector<iPOINT> enemyPt;
 ENEMY enemyTemp;
@@ -423,10 +428,10 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,u,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,b,t,b,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,m,t,t,t,t,t,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		t,t,t,t,b,t,t,k,t,t,t,t,t,t,t,m,t,t,t,t,t,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
 		k,k,k,k,k,k,d,d,d,t,t,k,d,k,k,k,d,k,d,k,d,k,d,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -686,6 +691,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					work.y = mapChip.height * tate;
 					work.part = part;
 					Sokushi.push_back(work);
+				}
+
+				if (mapData[part][tate][yoko] == b)
+				{
+					iPOINT work;
+					work.x = mapChip.width * yoko;
+					work.y = mapChip.height * tate;
+					work.part = part;
+					Tenmetsu.push_back(work);
 				}
 
 				if (mapData[part][tate][yoko] == u)
@@ -1317,6 +1331,24 @@ VOID MY_PLAY_PROC(VOID)
 			{
 				player.CenterY -= CHARA_SPEED_MIDI;
 			}
+
+			if (TimeLim % GAME_TENMETSU_SPAN != 0)
+			{
+				RECT PlayerRect = player.coll;
+				for (int i = 0; i < (int)Tenmetsu.size(); i++)
+				{
+					RECT Work;
+					Work.left = Tenmetsu[i].x;
+					Work.top = Tenmetsu[i].y;
+					Work.right = mapChip.width + Tenmetsu[i].x;
+					Work.bottom = mapChip.height + Tenmetsu[i].y;
+
+					if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+					{
+						player.CenterY -= CHARA_SPEED_MIDI;
+					}
+				}
+			}
 		}
 		if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D))
 		{
@@ -1329,6 +1361,24 @@ VOID MY_PLAY_PROC(VOID)
 			if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE || player.CenterX - player.image.width / 2 < 0 || player.CenterX + player.image.width / 2 > GAME_MAP_YOKO_MAX * mapChip.width)
 			{
 				player.CenterX -= CHARA_SPEED_MIDI;
+			}
+
+			if (TimeLim % GAME_TENMETSU_SPAN != 0)
+			{
+				RECT PlayerRect = player.coll;
+				for (int i = 0; i < (int)Tenmetsu.size(); i++)
+				{
+					RECT Work;
+					Work.left = Tenmetsu[i].x;
+					Work.top = Tenmetsu[i].y;
+					Work.right = mapChip.width + Tenmetsu[i].x;
+					Work.bottom = mapChip.height + Tenmetsu[i].y;
+
+					if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+					{
+						player.CenterX -= CHARA_SPEED_MIDI;
+					}
+				}
 			}
 		}
 		if (MY_KEY_DOWN(KEY_INPUT_LEFT) || MY_KEY_DOWN(KEY_INPUT_A))
@@ -1343,40 +1393,105 @@ VOID MY_PLAY_PROC(VOID)
 			{
 				player.CenterX += CHARA_SPEED_MIDI;
 			}
+
+			if (TimeLim % GAME_TENMETSU_SPAN != 0)
+			{
+				RECT PlayerRect = player.coll;
+				for (int i = 0; i < (int)Tenmetsu.size(); i++)
+				{
+					RECT Work;
+					Work.left = Tenmetsu[i].x;
+					Work.top = Tenmetsu[i].y;
+					Work.right = mapChip.width + Tenmetsu[i].x;
+					Work.bottom = mapChip.height + Tenmetsu[i].y;
+
+					if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+					{
+						player.CenterX += CHARA_SPEED_MIDI;
+					}
+				}
+			}
 		}
 		if (Scroll == YOKO_SCROLL && SpeedCnt == 0)
 		{
 			if (player.JumpFlg == TRUE)
 			{
+
+				bool flg = FALSE;
+
 				player.JumpCou += GAME_JUMP_SPEED;
 				player.CenterY -= GAME_JUMP_SPEED * player.image.height;
 				player.coll.left = player.CenterX - player.image.width / 2 + 5;
 				player.coll.top = player.CenterY - player.image.height / 2 + 5;
 				player.coll.right = player.CenterX + player.image.width / 2 - 5;
 				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+
+				if (TimeLim % GAME_TENMETSU_SPAN != 0)
+				{
+					RECT PlayerRect = player.coll;
+					for (int i = 0; i < (int)Tenmetsu.size(); i++)
+					{
+						RECT Work;
+						Work.left = Tenmetsu[i].x;
+						Work.top = Tenmetsu[i].y;
+						Work.right = mapChip.width + Tenmetsu[i].x;
+						Work.bottom = mapChip.height + Tenmetsu[i].y;
+
+						if (MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+						{
+							flg = TRUE;
+							player.CenterY += GAME_JUMP_SPEED * player.image.height;
+							player.JumpFlg = FALSE;
+						}
+					}
+				}
+
+				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE && flg == FALSE)
 				{
 					player.CenterY += GAME_JUMP_SPEED * player.image.height;
 					player.JumpFlg = FALSE;
 				}
-				if (player.JumpCou > GAME_JUMP_HEIGHT)
+				if (player.JumpCou > GAME_JUMP_HEIGHT && flg == FALSE)
 				{
 					player.JumpFlg = FALSE;
 				}
 			}
 			if (player.JumpFlg == FALSE)
 			{
+				bool flg = FALSE;
+
 				player.CenterY += GAME_GRAVITY * player.image.height;
 				player.coll.left = player.CenterX - player.image.width / 2 + 5;
 				player.coll.top = player.CenterY - player.image.height / 2 + 5;
 				player.coll.right = player.CenterX + player.image.width / 2 - 5;
 				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
-				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE)
+
+				if (TimeLim % GAME_TENMETSU_SPAN != 0)
+				{
+					RECT PlayerRect = player.coll;
+					for (int i = 0; i < (int)Tenmetsu.size(); i++)
+					{
+						RECT Work;
+						Work.left = Tenmetsu[i].x;
+						Work.top = Tenmetsu[i].y;
+						Work.right = mapChip.width + Tenmetsu[i].x;
+						Work.bottom = mapChip.height + Tenmetsu[i].y;
+
+						if (MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+						{
+							flg = TRUE;
+							player.CenterY -= GAME_GRAVITY * player.image.height;
+							player.JumpCan = TRUE;
+						}
+					}
+				}
+
+				if (MY_CHECK_MAP1_PLAYER_COLL(player.coll) == TRUE && flg == FALSE)
 				{
 					player.CenterY -= GAME_GRAVITY * player.image.height;
 					player.JumpCan = TRUE;
 				}
-				else
+				else if(flg == FALSE)
 				{
 					player.JumpCan = FALSE;
 				}
@@ -1472,7 +1587,6 @@ VOID MY_PLAY_PROC(VOID)
 
 				return;
 			}
-
 		}
 
 		for (int i = 0; i < (int)itemSpeed.size(); i++)
@@ -1618,6 +1732,7 @@ VOID MY_PLAY_DRAW(VOID)
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
+						if(map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (player.CenterX - (GAME_WIDTH / 2)),
 							map[player.Part][tate][yoko].y,
@@ -1682,6 +1797,7 @@ VOID MY_PLAY_DRAW(VOID)
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
+						if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
 							map[player.Part][tate][yoko].y,
@@ -1741,6 +1857,7 @@ VOID MY_PLAY_DRAW(VOID)
 				}
 				else
 				{
+				if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
 					DrawGraph(
 						map[player.Part][tate][yoko].x,
 						map[player.Part][tate][yoko].y,

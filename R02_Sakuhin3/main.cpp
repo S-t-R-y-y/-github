@@ -136,7 +136,8 @@ enum GAME_MAP_KIND
 	t = 13,		//í òH
 	s = 5,		//ÉXÉ^Å[Ég
 	g = 11,		//ÉSÅ[Éã
-	e = 14,		//ìG
+	e = 14,		//ìGà⁄ìÆ
+	h = 19,		//ìGå≈íË
 	i = 1,		//äKëwà⁄ìÆ
 	o = 2,		//äKëwà⁄ìÆêÊ
 	d = 12,		//ë¶éÄ
@@ -379,6 +380,7 @@ vector<iPOINT> Tenmetsu;
 
 vector<ENEMY> enemy;
 vector<iPOINT> enemyPt;
+vector<int> enemyMove;
 ENEMY enemyTemp;
 TAMA tamaTemp;
 
@@ -428,10 +430,10 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,u,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,b,t,b,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,s,t,t,t,t,t,t,t,t,t,t,k,k,t,k,k,k,k,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		t,t,t,t,b,t,t,k,t,t,t,t,t,t,t,m,t,t,t,t,t,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,m,t,t,t,t,t,t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
 		k,k,k,k,k,k,d,d,d,t,t,k,d,k,k,k,d,k,d,k,d,k,d,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,k,k,k,k,k,k,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -482,10 +484,10 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,o,t,k,k,
 		k,k,m,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,k,t,k,t,t,t,t,t,t,t,t,k,k,k,t,k,t,k,t,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,t,k,t,t,t,t,t,t,t,t,k,b,k,t,k,t,k,t,k,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,t,t,t,t,t,t,k,t,t,t,k,k,k,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,b,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,k,t,t,t,b,k,k,t,k,k,k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,u,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		t,p,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,i,t,k,k,
@@ -514,7 +516,7 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,t,t,t,t,t,t,t,t,t,t,t,k,t,k,t,t,e,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,e,t,t,t,t,t,t,t,t,t,t,k,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,k,k,t,t,t,t,t,t,t,k,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,t,t,t,t,t,t,t,e,e,e,t,k,t,t,t,e,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,t,t,t,t,t,t,t,h,h,h,t,k,t,t,t,e,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,k,k,t,k,k,k,k,k,k,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,k,k,k,k,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -540,11 +542,11 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,d,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
-		k,k,t,o,t,t,k,k,k,t,t,u,t,t,t,k,t,k,k,k,k,t,t,t,t,t,t,t,t,k,k,t,t,t,t,t,k,k,
+		k,k,t,o,t,t,k,k,k,t,t,u,t,t,t,k,t,k,b,b,k,t,t,t,t,t,t,t,t,k,k,t,t,t,t,t,k,k,
 		k,k,t,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,k,d,k,d,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,g,t,k,k,
 		k,k,t,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,t,k,t,k,t,t,t,t,t,t,k,k,k,k,k,
-		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
+		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,b,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
 		k,k,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,t,k,k,
@@ -664,6 +666,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					work.y = mapChip.height * tate;
 					work.part = part;
 					enemyPt.push_back(work);
+					enemyMove.push_back(1);
+				}
+
+				if (mapData[part][tate][yoko] == h)
+				{
+					iPOINT work;
+					work.x = mapChip.width * yoko;
+					work.y = mapChip.height * tate;
+					work.part = part;
+					enemyPt.push_back(work);
+					enemyMove.push_back(0);
 				}
 
 				if (mapData[part][tate][yoko] == i)
@@ -790,6 +803,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	DrawGraph(GraX, GraY + 10, Gra2Handle, TRUE);
 	ScreenFlip();
+
+	enemyMove.clear();
+	enemyPt.clear();
 
 	MY_DELETE_IMAGE();
 
@@ -1062,7 +1078,7 @@ VOID MY_START_PROC(VOID)
 		for (int i = 0; i < (int)enemyPt.size(); i++) 
 		{
 			ENEMY work = enemyTemp;
-			work.MoveAdd = /*GetRand(2)*/ - 2;
+			work.MoveAdd = - 2 * enemyMove[i];
 
 			work.view = TRUE;
 
@@ -1332,6 +1348,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.CenterY -= CHARA_SPEED_MIDI;
 			}
 
+			/*
 			if (TimeLim % GAME_TENMETSU_SPAN != 0)
 			{
 				RECT PlayerRect = player.coll;
@@ -1349,6 +1366,7 @@ VOID MY_PLAY_PROC(VOID)
 					}
 				}
 			}
+			*/
 		}
 		if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D))
 		{
@@ -1437,7 +1455,7 @@ VOID MY_PLAY_PROC(VOID)
 						Work.right = mapChip.width + Tenmetsu[i].x;
 						Work.bottom = mapChip.height + Tenmetsu[i].y;
 
-						if (MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+						if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
 						{
 							flg = TRUE;
 							player.CenterY += GAME_JUMP_SPEED * player.image.height;
@@ -1477,7 +1495,7 @@ VOID MY_PLAY_PROC(VOID)
 						Work.right = mapChip.width + Tenmetsu[i].x;
 						Work.bottom = mapChip.height + Tenmetsu[i].y;
 
-						if (MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
+						if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
 						{
 							flg = TRUE;
 							player.CenterY -= GAME_GRAVITY * player.image.height;

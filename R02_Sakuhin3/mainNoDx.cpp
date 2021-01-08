@@ -1,5 +1,6 @@
 #include "resource.h"
 #include <windows.h>
+#include <stdlib.h>
 #include <vector>
 #include <queue>
 
@@ -184,14 +185,6 @@ enum ITEM_TYPE
 	ITEM_MUTEKI = 1,
 	ITEM_STOP = 2
 };
-
-typedef struct STRUCT_RECT
-{
-	int top;
-	int left;
-	int right;
-	int bottom;
-}RECT;
 
 typedef struct STRUCT_I_POINT
 {

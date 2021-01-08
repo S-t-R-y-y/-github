@@ -87,9 +87,7 @@
 
 #define TAMA_DIV_NUM	TAMA_DIV_TATE * TAMA_DIV_YOKO
 
-//#define GAME_MAP_TATE_MAX	13
 #define GAME_MAP_TATE_MAX	26
-//#define GAME_MAP_YOKO_MAX	19
 #define GAME_MAP_YOKO_MAX	38
 #define GAME_MAP_KIND_MAX	2
 #define GAME_MAP_PART_MAX	5
@@ -226,11 +224,9 @@ typedef struct STRUCT_TAMA
 	int y;
 	int width;
 	int height;
-	BOOL IsDraw;
 	int nowImageKind;
 	int changeImageCnt;
 	int changeImageCntMAX;
-	int speedX;
 	int speedY;
 	RECT coll;
 }TAMA;
@@ -275,7 +271,6 @@ typedef struct STRUCT_USE_ITEM
 
 typedef struct STRUCT_ENEMY
 {
-	//MUSIC die;
 	IMAGE image;
 	int speed;
 	int CenterX;
@@ -304,7 +299,6 @@ typedef struct STRUCT_IMAGE_ROTA
 	double angleMAX;
 	double rate;
 	double rateMAX;
-
 }IMAGE_ROTA;
 
 typedef struct STRUCT_IMAGE_BLINK
@@ -313,7 +307,6 @@ typedef struct STRUCT_IMAGE_BLINK
 	int Cnt;
 	int CntMAX;
 	BOOL IsDraw;
-
 }IMAGE_BLINK;
 
 typedef struct STRUCT_MAP_IMAGE
@@ -342,12 +335,6 @@ int SampleNumFps = GAME_FPS;
 int AllKeyState[256] = { 0 };
 int OldAllKeyState[256] = { 0 };
 
-int GraHandle;
-int Gra2Handle;
-int Gra3Handle;
-int GraX;
-int GraY;
-
 int BGHandle1;
 int BGHandle2;
 int BGHandle3;
@@ -363,6 +350,9 @@ int GameLoop = TRUE;
 int TimeLim = GAME_TIME_LIMIT;
 int TimeCou = 0;
 
+int TenmetsuTime = 0;
+int TenmetsuCou = 0;
+
 int GameEndKind;
 RECT GoalRect = { -1,-1, -1, -1 };
 
@@ -373,14 +363,12 @@ CHARA player;
 
 vector<iPOINT> FromWarp;
 vector<iPOINT> ToWarp;
-
 vector<iPOINT> Sokushi;
-
 vector<iPOINT> Tenmetsu;
-
 vector<ENEMY> enemy;
 vector<iPOINT> enemyPt;
 vector<int> enemyMove;
+
 ENEMY enemyTemp;
 TAMA tamaTemp;
 
@@ -393,8 +381,6 @@ IMAGE ImageTitleButtonRule;
 IMAGE ImageTitleButtonEnd;
 IMAGE ImageTitleButtonNow;
 int NowChoice = 0;
-
-int GoalKaiso;
 
 IMAGE_ROTA ImageTitleROGO;
 
@@ -565,7 +551,14 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 	}
 };
 
-int mapScroll[GAME_MAP_PART_MAX] = {YOKO_SCROLL, TATE_SCROLL, YOKO_SCROLL, TATE_SCROLL, YOKO_SCROLL};
+int mapScroll[GAME_MAP_PART_MAX] = 
+{
+	YOKO_SCROLL,
+	TATE_SCROLL,
+	YOKO_SCROLL,
+	TATE_SCROLL,
+	YOKO_SCROLL
+};
 
 
 GAME_MAP_KIND mapDataInit[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
@@ -579,7 +572,6 @@ iPOINT startPt{ -1, -1, -1};
 RECT mapColl[GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX];
 
 VOID MY_FPS_UPDATE(VOID);
-VOID MY_FPS_DRAW(VOID);
 VOID MY_FPS_WAIT(VOID);
 
 VOID MY_ALL_KEYDOWN_UPDATE(VOID);
@@ -655,8 +647,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 					GoalRect.top = mapChip.height * tate;
 					GoalRect.right = mapChip.width * (yoko + 1);
 					GoalRect.bottom = mapChip.height * (tate + 1);
-
-					GoalKaiso = part;
 				}
 
 				if (mapData[part][tate][yoko] == e)
@@ -801,7 +791,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MY_FPS_WAIT();
 	}
 
-	DrawGraph(GraX, GraY + 10, Gra2Handle, TRUE);
 	ScreenFlip();
 
 	enemyMove.clear();
@@ -833,17 +822,11 @@ VOID MY_FPS_UPDATE(VOID)
 	}
 	CountFps++;
 	TimeCou++;
+	if (!Stop.Use)TenmetsuCou++;
 	if (Speed.Use)Speed.Cou++;
 	if (Muteki.Use)Muteki.Cou++;
 	if (Stop.Use)Stop.Cou++;
 
-	return;
-}
-
-
-VOID MY_FPS_DRAW(VOID)
-{
-	DrawFormatString(0, GAME_HEIGHT - 20, GetColor(255, 255, 255), "FPS:%.1f", CalcFps);
 	return;
 }
 
@@ -1071,8 +1054,6 @@ VOID MY_START_PROC(VOID)
 		Stop.Use = FALSE;
 		while (!Stop.Plog.empty())Stop.Plog.pop();
 
-		tamaTemp.IsDraw = FALSE;
-
 		SetMousePoint(player.image.x, player.image.y);
 
 		for (int i = 0; i < (int)enemyPt.size(); i++) 
@@ -1097,6 +1078,9 @@ VOID MY_START_PROC(VOID)
 
 		TimeLim = 0;
 		TimeCou = 0;
+
+		TenmetsuCou = 0;
+		TenmetsuTime = 0;
 
 		for (int kai = 0; kai < GAME_MAP_PART_MAX; kai++)
 		{
@@ -1154,7 +1138,6 @@ VOID MY_START_DRAW(VOID)
 	DrawGraph(ImageTitleButtonEnd.x, ImageTitleButtonEnd.y, ImageTitleButtonEnd.handle, TRUE);
 	DrawGraph(ImageTitleButtonNow.x, ImageTitleButtonNow.y, ImageTitleButtonNow.handle, TRUE);
 
-	//DrawString(0, 0, "スタート画面(エンターキーを押して下さい)", GetColor(255, 255, 255));
 	return;
 }
 
@@ -1193,8 +1176,6 @@ VOID MY_RULE_PROC(VOID)
 VOID MY_RULE_DRAW(VOID)
 {
 	DrawGraph(Image_RULE.x, Image_RULE.y, Image_RULE.handle, TRUE);
-
-	//DrawString(0, 0, "スタート画面(エンターキーを押して下さい)", GetColor(255, 255, 255));
 	return;
 }
 
@@ -1216,6 +1197,8 @@ VOID MY_PLAY_PROC(VOID)
 	}
 
 	player.Muki = 0.0;
+
+	TenmetsuTime = TenmetsuCou / GAME_FPS;
 
 	TimeLim = GAME_TIME_LIMIT - TimeCou / GAME_FPS;
 	if (TimeLim <= 0)
@@ -1347,26 +1330,6 @@ VOID MY_PLAY_PROC(VOID)
 			{
 				player.CenterY -= CHARA_SPEED_MIDI;
 			}
-
-			/*
-			if (TimeLim % GAME_TENMETSU_SPAN != 0)
-			{
-				RECT PlayerRect = player.coll;
-				for (int i = 0; i < (int)Tenmetsu.size(); i++)
-				{
-					RECT Work;
-					Work.left = Tenmetsu[i].x;
-					Work.top = Tenmetsu[i].y;
-					Work.right = mapChip.width + Tenmetsu[i].x;
-					Work.bottom = mapChip.height + Tenmetsu[i].y;
-
-					if (player.Part == Tenmetsu[i].part && MY_CHECK_RECT_COLL(PlayerRect, Work) == TRUE)
-					{
-						player.CenterY -= CHARA_SPEED_MIDI;
-					}
-				}
-			}
-			*/
 		}
 		if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D))
 		{
@@ -1381,7 +1344,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.CenterX -= CHARA_SPEED_MIDI;
 			}
 
-			if (TimeLim % GAME_TENMETSU_SPAN != 0)
+			if (TenmetsuTime % GAME_TENMETSU_SPAN != 0)
 			{
 				RECT PlayerRect = player.coll;
 				for (int i = 0; i < (int)Tenmetsu.size(); i++)
@@ -1412,7 +1375,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.CenterX += CHARA_SPEED_MIDI;
 			}
 
-			if (TimeLim % GAME_TENMETSU_SPAN != 0)
+			if (TenmetsuTime % GAME_TENMETSU_SPAN != 0)
 			{
 				RECT PlayerRect = player.coll;
 				for (int i = 0; i < (int)Tenmetsu.size(); i++)
@@ -1444,7 +1407,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.coll.right = player.CenterX + player.image.width / 2 - 5;
 				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 
-				if (TimeLim % GAME_TENMETSU_SPAN != 0)
+				if (TenmetsuTime % GAME_TENMETSU_SPAN != 0)
 				{
 					RECT PlayerRect = player.coll;
 					for (int i = 0; i < (int)Tenmetsu.size(); i++)
@@ -1484,7 +1447,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.coll.right = player.CenterX + player.image.width / 2 - 5;
 				player.coll.bottom = player.CenterY + player.image.height / 2 - 5;
 
-				if (TimeLim % GAME_TENMETSU_SPAN != 0)
+				if (TenmetsuTime % GAME_TENMETSU_SPAN != 0)
 				{
 					RECT PlayerRect = player.coll;
 					for (int i = 0; i < (int)Tenmetsu.size(); i++)
@@ -1539,7 +1502,7 @@ VOID MY_PLAY_PROC(VOID)
 		PlayerRect.right = player.image.x + player.image.width - 20;
 		PlayerRect.bottom = player.image.y + player.image.height - 20;
 
-		if (player.Part == GoalKaiso && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
+		if (player.Part == GAME_MAP_PART_MAX - 1 && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
 			{
@@ -1690,12 +1653,8 @@ VOID MY_PLAY_PROC(VOID)
 
 				if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0 && !Stop.Use)
 				{
-					//ChangeVolumeSoundMem(255 * 75 / 100, enemy.musicShot[player.SeCou].handle);
-					//PlaySoundMem(player.musicShot[player.SeCou].handle, DX_PLAYTYPE_BACK);
-
 					TAMA work = tamaTemp;
 					work.x = enemy[i].CenterX - work.width / 2;
-
 					work.y = enemy[i].CenterY - work.height / 2;
 
 					work.coll.left = work.x;
@@ -1703,8 +1662,6 @@ VOID MY_PLAY_PROC(VOID)
 					work.coll.top = work.y;
 					work.coll.bottom = work.y + work.height;
 
-					work.IsDraw = TRUE;
-					work.speedX = 0;
 					work.speedY = CHARA_SPEED_HIGH;
 
 					enemy[i].tama.push_back(work);
@@ -1750,7 +1707,7 @@ VOID MY_PLAY_DRAW(VOID)
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
-						if(map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
+						if(map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (player.CenterX - (GAME_WIDTH / 2)),
 							map[player.Part][tate][yoko].y,
@@ -1815,7 +1772,7 @@ VOID MY_PLAY_DRAW(VOID)
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
-						if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
+						if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
 							map[player.Part][tate][yoko].y,
@@ -1875,7 +1832,7 @@ VOID MY_PLAY_DRAW(VOID)
 				}
 				else
 				{
-				if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TimeLim % GAME_TENMETSU_SPAN != 0))
+				if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
 					DrawGraph(
 						map[player.Part][tate][yoko].x,
 						map[player.Part][tate][yoko].y,
@@ -2159,77 +2116,74 @@ VOID MY_PLAY_DRAW(VOID)
 		{
 			for (int cnt = 0; cnt < (int)enemy[i].tama.size(); cnt++)
 			{
-				if (enemy[i].tama[cnt].IsDraw == TRUE)
+				if (player.CenterY > (GAME_HEIGHT / 2) && player.CenterY <= (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
 				{
-					if (player.CenterY > (GAME_HEIGHT / 2) && player.CenterY <= (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
-					{
-						DrawGraph(
-							enemy[i].tama[cnt].x,
-							enemy[i].tama[cnt].y - (player.CenterY - (GAME_HEIGHT / 2)),
-							enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
-					}
-					else if (player.CenterY > (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
-					{
-						DrawGraph(
-							enemy[i].tama[cnt].x,
-							enemy[i].tama[cnt].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
-							enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
-					}
-					else
-					{
-						DrawGraph(
-							enemy[i].tama[cnt].x,
-							enemy[i].tama[cnt].y,
-							enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
-					}
+					DrawGraph(
+						enemy[i].tama[cnt].x,
+						enemy[i].tama[cnt].y - (player.CenterY - (GAME_HEIGHT / 2)),
+						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
+				}
+				else if (player.CenterY > (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
+				{
+					DrawGraph(
+						enemy[i].tama[cnt].x,
+						enemy[i].tama[cnt].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
+						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
+				}
+				else
+				{
+					DrawGraph(
+						enemy[i].tama[cnt].x,
+						enemy[i].tama[cnt].y,
+						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
+				}
 
-					if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX && !Stop.Use)
+				if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX && !Stop.Use)
+				{
+					enemy[i].tama[cnt].changeImageCnt++;
+				}
+				else if (!Stop.Use)
+				{
+					if (enemy[i].tama[cnt].nowImageKind < TAMA_DIV_NUM - 1)
 					{
-						enemy[i].tama[cnt].changeImageCnt++;
-					}
-					else if(!Stop.Use)
-					{
-						if (enemy[i].tama[cnt].nowImageKind < TAMA_DIV_NUM - 1)
-						{
-							enemy[i].tama[cnt].nowImageKind++;
-						}
-						else
-						{
-							enemy[i].tama[cnt].nowImageKind = 0;
-						}
-
-						enemy[i].tama[cnt].changeImageCnt = 0;
-					}
-
-					if (enemy[i].tama[cnt].y < 0 || enemy[i].tama[cnt].y > GAME_MAP_TATE_MAX * mapChip.height)
-					{
-						enemy[i].tama.erase(enemy[i].tama.begin() + cnt);
-						cnt--;
+						enemy[i].tama[cnt].nowImageKind++;
 					}
 					else
 					{
-						if (!Stop.Use)
+						enemy[i].tama[cnt].nowImageKind = 0;
+					}
+
+					enemy[i].tama[cnt].changeImageCnt = 0;
+				}
+
+				if (enemy[i].tama[cnt].y < 0 || enemy[i].tama[cnt].y > GAME_MAP_TATE_MAX * mapChip.height)
+				{
+					enemy[i].tama.erase(enemy[i].tama.begin() + cnt);
+					cnt--;
+				}
+				else
+				{
+					if (!Stop.Use)
+					{
+						enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
+						enemy[i].tama[cnt].coll.top += enemy[i].tama[cnt].speedY;
+						enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
+					}
+
+					if (enemy[i].Part == player.Part && MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
+					{
+						if (CheckSoundMem(BGM.handle) != 0)
 						{
-							enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
-							enemy[i].tama[cnt].coll.top += enemy[i].tama[cnt].speedY;
-							enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
+							StopSoundMem(BGM.handle);
 						}
 
-						if (enemy[i].Part == player.Part && MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
-						{
-							if (CheckSoundMem(BGM.handle) != 0)
-							{
-								StopSoundMem(BGM.handle);
-							}
+						SetMouseDispFlag(TRUE);
 
-							SetMouseDispFlag(TRUE);
+						GameEndKind = GAME_END_FAIL;
 
-							GameEndKind = GAME_END_FAIL;
+						GameScene = GAME_SCENE_END;
 
-							GameScene = GAME_SCENE_END;
-
-							return;
-						}
+						return;
 					}
 				}
 			}
@@ -2656,17 +2610,14 @@ BOOL MY_LOAD_IMAGE(VOID)
 	GetGraphSize(tamaTemp.handle[0], &tamaTemp.width, &tamaTemp.height);
 	strcpyDx(tamaTemp.path, TEXT(TAMA_RED_PATH));
 
-//	player.tama[cnt].handle[i_num] = player.tama[0].handle[i_num];
 	tamaTemp.width = tamaTemp.width;
 	tamaTemp.height = tamaTemp.height;
 	tamaTemp.x = enemyTemp.CenterX - tamaTemp.width / 2;
 	tamaTemp.y = enemyTemp.image.y;
-	tamaTemp.IsDraw = FALSE;
 	tamaTemp.changeImageCnt = 0;
 	tamaTemp.changeImageCntMAX = TAMA_CHANGE_MAX;
 	tamaTemp.nowImageKind = 0;
 
-	tamaTemp.speedX = CHARA_SPEED_HIGH;
 	tamaTemp.speedY = CHARA_SPEED_HIGH;
 
 	int mapRes = LoadDivGraph(

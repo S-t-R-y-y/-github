@@ -18,6 +18,9 @@
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="NoDxLib.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
@@ -28,7 +31,7 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="mainNoDx.cpp">
+    <ClCompile Include="mainNoDxLib.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>

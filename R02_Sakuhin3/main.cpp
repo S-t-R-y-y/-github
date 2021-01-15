@@ -1082,10 +1082,10 @@ VOID MY_START_PROC(VOID)
 		TenmetsuCou = 0;
 		TenmetsuTime = 0;
 
-		for (int kai = 0; kai < GAME_MAP_PART_MAX; kai++)
+		for (int part = 0; part < GAME_MAP_PART_MAX; part++)
 		{
-			ImageBack[kai].image.x = GAME_WIDTH / 2 - ImageBack[kai].image.width / 2;
-			ImageBack[kai].image.y = GAME_HEIGHT / 2 - ImageBack[kai].image.height / 2;
+			ImageBack[part].image.x = GAME_WIDTH / 2 - ImageBack[part].image.width / 2;
+			ImageBack[part].image.y = GAME_HEIGHT / 2 - ImageBack[part].image.height / 2;
 		}
 
 		switch (NowChoice)
@@ -2376,7 +2376,6 @@ VOID MY_END_DRAW(VOID)
 
 	}
 
-	//DrawString(0, 0, "エンド画面(エスケープキーを押して下さい)", GetColor(255, 255, 255));
 	return;
 }
 
@@ -2737,45 +2736,6 @@ BOOL MY_LOAD_MUSIC(VOID)
 		return(FALSE);
 	}
 
-	/*
-	strcpy_s(player.musicShot[0].path, MUSIC_PLAYER_SHOT_PATH_1);
-	player.musicShot[0].handle = LoadSoundMem(player.musicShot[0].path);
-	if (player.musicShot[0].handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_PLAYER_SHOT_PATH_1, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	strcpy_s(player.musicShot[1].path, MUSIC_PLAYER_SHOT_PATH_2);
-	player.musicShot[1].handle = LoadSoundMem(player.musicShot[1].path);
-	if (player.musicShot[1].handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_PLAYER_SHOT_PATH_2, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	strcpy_s(player.musicShot[2].path, MUSIC_PLAYER_SHOT_PATH_3);
-	player.musicShot[2].handle = LoadSoundMem(player.musicShot[2].path);
-	if (player.musicShot[2].handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_PLAYER_SHOT_PATH_3, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	strcpy_s(player.musicShot[3].path, MUSIC_PLAYER_SHOT_PATH_4);
-	player.musicShot[3].handle = LoadSoundMem(player.musicShot[3].path);
-	if (player.musicShot[3].handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_PLAYER_SHOT_PATH_4, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-
-	strcpy_s(enemyTemp.die.path, MUSIC_ENEMY_DIE_PATH);
-	enemyTemp.die.handle = LoadSoundMem(enemyTemp.die.path);
-	if (enemyTemp.die.handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_ENEMY_DIE_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	*/
-
 	return TRUE;
 }
 
@@ -2785,8 +2745,6 @@ VOID MY_DELETE_MUSIC(VOID)
 	DeleteSoundMem(BGM_TITLE.handle);
 	DeleteSoundMem(BGM_COMP.handle);
 	DeleteSoundMem(BGM_FAIL.handle);
-	//for (int i = 0; i < 4; i++)DeleteSoundMem(player.musicShot[i].handle);
-	//for (int i = 0; i < (int)enemy.size(); i++)DeleteSoundMem(enemy[i].die.handle);
 
 	return;
 }

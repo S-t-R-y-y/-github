@@ -632,7 +632,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	GameScene = GAME_SCENE_START;
 
-	SetDrawScreen(DX_SCREEN_BACK);
+	SetDrawScreen(SCREEN_BACK);
 
 	for (int part = 0; part < GAME_MAP_PART_MAX; part++)
 	{
@@ -921,14 +921,14 @@ VOID MY_MOUSE_UPDATE(VOID)
 
 	mouse.InputValue = GetMouseInput();
 
-	if ((mouse.InputValue & MOUSE_INPUT_LEFT) == MOUSE_INPUT_LEFT) { mouse.Button[MOUSE_INPUT_LEFT]++; }
-	if ((mouse.InputValue & MOUSE_INPUT_LEFT) != MOUSE_INPUT_LEFT) { mouse.Button[MOUSE_INPUT_LEFT] = 0; }
+	if ((mouse.InputValue & VK_LBUTTON) == VK_LBUTTON) { mouse.Button[VK_LBUTTON]++; }
+	if ((mouse.InputValue & VK_LBUTTON) != VK_LBUTTON) { mouse.Button[VK_LBUTTON] = 0; }
 
-	if ((mouse.InputValue & MOUSE_INPUT_MIDDLE) == MOUSE_INPUT_MIDDLE) { mouse.Button[MOUSE_INPUT_MIDDLE]++; }
-	if ((mouse.InputValue & MOUSE_INPUT_MIDDLE) != MOUSE_INPUT_MIDDLE) { mouse.Button[MOUSE_INPUT_MIDDLE] = 0; }
+	if ((mouse.InputValue & VK_MBUTTON) == VK_MBUTTON) { mouse.Button[VK_MBUTTON]++; }
+	if ((mouse.InputValue & VK_MBUTTON) != VK_MBUTTON) { mouse.Button[VK_MBUTTON] = 0; }
 
-	if ((mouse.InputValue & MOUSE_INPUT_RIGHT) == MOUSE_INPUT_RIGHT) { mouse.Button[MOUSE_INPUT_RIGHT]++; }
-	if ((mouse.InputValue & MOUSE_INPUT_RIGHT) != MOUSE_INPUT_RIGHT) { mouse.Button[MOUSE_INPUT_RIGHT] = 0; }
+	if ((mouse.InputValue & VK_RBUTTON) == VK_RBUTTON) { mouse.Button[VK_RBUTTON]++; }
+	if ((mouse.InputValue & VK_RBUTTON) != VK_RBUTTON) { mouse.Button[VK_RBUTTON] = 0; }
 
 	mouse.WheelValue = GetMouseWheelRotVol();
 
@@ -987,16 +987,16 @@ VOID MY_START_PROC(VOID)
 	if (CheckSoundMem(BGM_TITLE.handle) == 0)
 	{
 		ChangeVolumeSoundMem(255 * 75 / 100, BGM_TITLE.handle);
-		PlaySoundMem(BGM_TITLE.handle, DX_PLAYTYPE_LOOP);
+		PlaySoundMem(BGM_TITLE.handle, PLAYTYPE_LOOP);
 	}
 
-	if (MY_KEY_UP(KEY_INPUT_W) == TRUE || MY_KEY_UP(KEY_INPUT_UP) == TRUE)
+	if (MY_KEY_UP('W') == TRUE || MY_KEY_UP(VK_UP) == TRUE)
 	{
 		NowChoice--;
 		NowChoice += 3;
 		NowChoice %= 3;
 	}
-	if (MY_KEY_UP(KEY_INPUT_S) == TRUE || MY_KEY_UP(KEY_INPUT_DOWN) == TRUE)
+	if (MY_KEY_UP('S') == TRUE || MY_KEY_UP(VK_DOWN) == TRUE)
 	{
 		NowChoice++;
 		NowChoice %= 3;
@@ -1015,7 +1015,7 @@ VOID MY_START_PROC(VOID)
 		break;
 	}
 
-	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
+	if (MY_KEY_UP(VK_RETURN) == TRUE)
 	{
 		if (CheckSoundMem(BGM_TITLE.handle) != 0)
 		{
@@ -1159,10 +1159,10 @@ VOID MY_RULE_PROC(VOID)
 {
 	if (CheckSoundMem(BGM_TITLE.handle) == 0)
 	{
-		PlaySoundMem(BGM_TITLE.handle, DX_PLAYTYPE_LOOP);
+		PlaySoundMem(BGM_TITLE.handle, PLAYTYPE_LOOP);
 	}
 
-	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
+	if (MY_KEY_UP(VK_RETURN) == TRUE)
 	{
 		if (CheckSoundMem(BGM_TITLE.handle) != 0)
 		{
@@ -1199,7 +1199,7 @@ VOID MY_PLAY_PROC(VOID)
 	{
 		ChangeVolumeSoundMem(255 * 75 / 100, BGM.handle);
 
-		PlaySoundMem(BGM.handle, DX_PLAYTYPE_LOOP);
+		PlaySoundMem(BGM.handle, PLAYTYPE_LOOP);
 	}
 
 	player.Muki = 0.0;
@@ -1246,7 +1246,7 @@ VOID MY_PLAY_PROC(VOID)
 
 	for (int SpeedCnt = 0; SpeedCnt < Speed.Up; SpeedCnt++)
 	{
-		if (mouse.Button[MOUSE_INPUT_RIGHT] == TRUE)
+		if (mouse.Button[VK_RBUTTON] == TRUE)
 		{
 			iPOINT R_ClickPt = mouse.Point;
 
@@ -1275,7 +1275,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
-		if (MY_KEY_DOWN(KEY_INPUT_1) && player.Item[ITEM_SPEED] == TRUE)
+		if (MY_KEY_DOWN('1') && player.Item[ITEM_SPEED] == TRUE)
 		{
 			player.Item[ITEM_SPEED] = FALSE;
 			Speed.Use = TRUE;
@@ -1283,7 +1283,7 @@ VOID MY_PLAY_PROC(VOID)
 			Speed.Cou = 0;
 			while (!Speed.Plog.empty())Speed.Plog.pop();
 		}
-		if (MY_KEY_DOWN(KEY_INPUT_2) && player.Item[ITEM_MUTEKI] == TRUE)
+		if (MY_KEY_DOWN('2') && player.Item[ITEM_MUTEKI] == TRUE)
 		{
 			player.Item[ITEM_MUTEKI] = FALSE;
 			Muteki.Use = TRUE;
@@ -1291,7 +1291,7 @@ VOID MY_PLAY_PROC(VOID)
 			Muteki.Cou = 0;
 			while (!Muteki.Plog.empty())Muteki.Plog.pop();
 		}
-		if (MY_KEY_DOWN(KEY_INPUT_3) && player.Item[ITEM_STOP] == TRUE)
+		if (MY_KEY_DOWN('3') && player.Item[ITEM_STOP] == TRUE)
 		{
 			player.Item[ITEM_STOP] = FALSE;
 			Stop.Use = TRUE;
@@ -1300,7 +1300,7 @@ VOID MY_PLAY_PROC(VOID)
 			while (!Stop.Plog.empty())Stop.Plog.pop();
 		}
 
-		if (MY_KEY_DOWN(KEY_INPUT_UP) || MY_KEY_DOWN(KEY_INPUT_W))
+		if (MY_KEY_DOWN(VK_UP) || MY_KEY_DOWN('W'))
 		{
 
 			if (Scroll == YOKO_SCROLL)
@@ -1325,7 +1325,7 @@ VOID MY_PLAY_PROC(VOID)
 				}
 			}
 		}
-		if ((MY_KEY_DOWN(KEY_INPUT_DOWN) || MY_KEY_DOWN(KEY_INPUT_S)) && Scroll == TATE_SCROLL)
+		if ((MY_KEY_DOWN(VK_DOWN) || MY_KEY_DOWN('S')) && Scroll == TATE_SCROLL)
 		{
 			player.CenterY += CHARA_SPEED_MIDI;
 			player.coll.left = player.CenterX - player.image.width / 2 + 5;
@@ -1337,7 +1337,7 @@ VOID MY_PLAY_PROC(VOID)
 				player.CenterY -= CHARA_SPEED_MIDI;
 			}
 		}
-		if (MY_KEY_DOWN(KEY_INPUT_RIGHT) || MY_KEY_DOWN(KEY_INPUT_D))
+		if (MY_KEY_DOWN(VK_RIGHT) || MY_KEY_DOWN('D'))
 		{
 			player.CenterX += CHARA_SPEED_MIDI;
 			player.coll.left = player.CenterX - player.image.width / 2 + 5;
@@ -1368,7 +1368,7 @@ VOID MY_PLAY_PROC(VOID)
 				}
 			}
 		}
-		if (MY_KEY_DOWN(KEY_INPUT_LEFT) || MY_KEY_DOWN(KEY_INPUT_A))
+		if (MY_KEY_DOWN(VK_LEFT) || MY_KEY_DOWN('A'))
 		{
 			player.CenterX -= CHARA_SPEED_MIDI;
 			player.coll.left = player.CenterX - player.image.width / 2 + 5;
@@ -1760,14 +1760,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 						if (Muteki.Use)
 						{
-							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 							DrawBox(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) - player.image.width/2,
 								player.image.y,
 								player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width + player.image.width / 2,
 								player.image.y + player.image.height,
 								GetColor(200, 200, 255),
 								TRUE);
-							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+							SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 						}
 					}
 				}
@@ -1825,14 +1825,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 						if (Muteki.Use)
 						{
-							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 							DrawBox(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) - player.image.width / 2,
 								player.image.y,
 								player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width + player.image.width / 2,
 								player.image.y + player.image.height,
 								GetColor(200, 200, 255),
 								TRUE);
-							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+							SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 						}
 					}
 				}
@@ -1885,14 +1885,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 					if (Muteki.Use)
 					{
-						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+						SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 						DrawBox(player.image.x - player.image.width / 2,
 							player.image.y,
 							player.image.x + player.image.width + player.image.width / 2,
 							player.image.y + player.image.height,
 							GetColor(200, 200, 255),
 							TRUE);
-						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 					}
 				}
 			}
@@ -1957,14 +1957,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 						if (Muteki.Use)
 						{
-							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 							DrawBox(player.image.x - player.image.width / 2,
 								player.image.y - (player.CenterY - (GAME_HEIGHT / 2)),
 								player.image.x + player.image.width + player.image.width / 2,
 								player.image.y - (player.CenterY - (GAME_HEIGHT / 2)) + player.image.height,
 								GetColor(200, 200, 255),
 								TRUE);
-							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+							SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 						}
 
 						for (int i = 0; i < (int)enemy.size(); i++)
@@ -2028,14 +2028,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 						if (Muteki.Use)
 						{
-							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 							DrawBox(player.image.x - player.image.width / 2,
 								player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
 								player.image.x + player.image.width + player.image.width / 2,
 								player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT) + player.image.height,
 								GetColor(200, 200, 255),
 								TRUE);
-							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+							SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 						}
 
 						for (int i = 0; i < (int)enemy.size(); i++)
@@ -2095,14 +2095,14 @@ VOID MY_PLAY_DRAW(VOID)
 
 					if (Muteki.Use)
 					{
-						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+						SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 						DrawBox(player.image.x - player.image.width / 2,
 							player.image.y,
 							player.image.x + player.image.width + player.image.width / 2,
 							player.image.y + player.image.height,
 							GetColor(200, 200, 255),
 							TRUE);
-						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 					}
 
 					for (int i = 0; i < (int)enemy.size(); i++)
@@ -2228,11 +2228,10 @@ VOID MY_PLAY_DRAW(VOID)
 	if (Speed.Use)
 	{
 		SetFontSize(60);
-		DrawFormatString(
+		DrawNumber(
 			50,
 			20,
 			GetColor(255, 255, 255),
-			"%d",
 			GAME_ITEM_USE_TIME - Speed.Cou / GAME_FPS,
 			TRUE);
 	}
@@ -2240,11 +2239,10 @@ VOID MY_PLAY_DRAW(VOID)
 	if (Muteki.Use)
 	{
 		SetFontSize(60);
-		DrawFormatString(
+		DrawNumber(
 			50 + 64,
 			20,
 			GetColor(255, 255, 255),
-			"%d",
 			GAME_ITEM_USE_TIME - Muteki.Cou / GAME_FPS,
 			TRUE);
 	}
@@ -2252,26 +2250,25 @@ VOID MY_PLAY_DRAW(VOID)
 	if (Stop.Use)
 	{
 		SetFontSize(60);
-		DrawFormatString(
+		DrawNumber(
 			50 + 128,
 			20,
 			GetColor(255, 255, 255),
-			"%d",
 			GAME_ITEM_USE_TIME - Stop.Cou / GAME_FPS,
 			TRUE);
 	}
 
 	if (Stop.Use)
 	{
-		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+		SetDrawBlendMode(BLENDMODE_ALPHA, 50);
 		DrawBox(0, 0, mapChip.width * GAME_MAP_YOKO_MAX, mapChip.height * GAME_MAP_TATE_MAX, GetColor(200, 200, 200), TRUE);
-		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+		SetDrawBlendMode(BLENDMODE_NOBLEND, 0);
 	}
 
 	DrawBox(WINDOW_WIDTH - 155, 15, WINDOW_WIDTH - 45, 75, GetColor(0, 0, 0), TRUE);
 	DrawBox(WINDOW_WIDTH - 150, 20, WINDOW_WIDTH - 50, 70, GetColor(110, 110, 110), TRUE);
 	SetFontSize(48);
-	DrawFormatString(WINDOW_WIDTH - 137, 21, GetColor(255, 255, 255), "%d", TimeLim);
+	DrawNumber(WINDOW_WIDTH - 137, 21, GetColor(255, 255, 255), TimeLim, TRUE);
 
 	return;
 }
@@ -2286,7 +2283,7 @@ VOID MY_END(VOID)
 
 VOID MY_END_PROC(VOID)
 {
-	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
+	if (MY_KEY_UP(VK_RETURN) == TRUE)
 	{
 		if (CheckSoundMem(BGM_COMP.handle) != 0)
 		{
@@ -2314,7 +2311,7 @@ VOID MY_END_PROC(VOID)
 		if (CheckSoundMem(BGM_COMP.handle) == 0)
 		{
 			ChangeVolumeSoundMem(255 * 50 / 100, BGM_COMP.handle);
-			PlaySoundMem(BGM_COMP.handle, DX_PLAYTYPE_LOOP);
+			PlaySoundMem(BGM_COMP.handle, PLAYTYPE_LOOP);
 		}
 
 		if (ImageEndCOMP.Cnt < ImageEndCOMP.CntMAX)
@@ -2337,7 +2334,7 @@ VOID MY_END_PROC(VOID)
 		{
 			ChangeVolumeSoundMem(255 * 50 / 100, BGM_FAIL.handle);
 
-			PlaySoundMem(BGM_FAIL.handle, DX_PLAYTYPE_LOOP);
+			PlaySoundMem(BGM_FAIL.handle, PLAYTYPE_LOOP);
 		}
 
 		if (ImageEndFAIL.Cnt < ImageEndFAIL.CntMAX)
@@ -2408,8 +2405,8 @@ BOOL MY_LOAD_IMAGE(VOID)
 	GetGraphSize(ImageTitleROGO.image.handle, &ImageTitleROGO.image.width, &ImageTitleROGO.image.height);
 	ImageTitleROGO.image.x = WINDOW_WIDTH - ImageTitleROGO.image.width;
 	ImageTitleROGO.image.y = GAME_HEIGHT / 4;
-	ImageTitleROGO.angle = DX_PI * 2;
-	ImageTitleROGO.angleMAX = DX_PI * 2;
+	ImageTitleROGO.angle = M_PI * 2;
+	ImageTitleROGO.angleMAX = M_PI * 2;
 	ImageTitleROGO.rate = 0.0;
 	ImageTitleROGO.rateMAX = IMAGE_TITLE_ROGO_ROTA_MAX;
 
@@ -2613,7 +2610,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 
 	GetGraphSize(tamaTemp.handle[0], &tamaTemp.width, &tamaTemp.height);
-	strcpyDx(tamaTemp.path, TEXT(TAMA_RED_PATH));
+	strcpy_s(tamaTemp.path, strlen(TEXT(TAMA_RED_PATH)), TEXT(TAMA_RED_PATH));
 
 	tamaTemp.width = tamaTemp.width;
 	tamaTemp.height = tamaTemp.height;

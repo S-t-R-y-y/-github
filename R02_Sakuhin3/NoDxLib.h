@@ -3,14 +3,33 @@
 #include<stdlib.h>
 #include<tchar.h>
 #include<math.h>
+#include<mmsystem.h>
+#include<string.h>
 
-
+#pragma comment(lib,"winmm")
 #pragma comment(lib, "msimg32.lib")
 
-#define KEYCODE_MAX			256
+#define KEYCODE_MAX			256		
 
 #define ERR_BITMAP_LOAD_TITLE	TEXT("ビットマップ読込・失敗")
 #define ERR_BITMAP_LOAD_TEXT	TEXT("ビットマップを読み込めません。終了します。")
+
+enum SCREEN_MODE
+{
+	SCREEN_BACK = 0,
+	SCREEN_FRONT = 1
+};
+
+enum PLAY_TYPE
+{
+	PLAYTYPE_LOOP
+};
+
+enum BLENDMODE
+{
+	BLENDMODE_ALPHA,
+	BLENDMODE_NOBLEND
+};
 
 bool IsWindowClassRegi(PCTSTR, HINSTANCE);
 void IsWindowCreate(HWND *, PCTSTR, HINSTANCE);
@@ -37,37 +56,82 @@ HDC hdc_double;
 
 //---------------------------------------------------------------------
 
-LPCSTR MY_WIN_ICON;
-TCHAR *MY_WIN_TITLE;
-int MY_WINDOW_WIDTH = 0;
-int MY_WINDOW_HEIGHT = 0;
+LPCSTR icon;
+TCHAR title[256];
+int window_width = 0;
+int window_height = 0;
+int window_color = 0;
+int mouse_disp_flag = true;
 
-int ChangeWindowMode(int flag);
-int SetGraphMode(int ScreenSizeX, int ScreenSizeY, int Color);
-int SetWindowStyleMode(int Mode);
-int SetMainWindowText(const TCHAR* WindowText);
-int SetWindowIconID(int ID);
-int SetMouseDispFlag(int flag);
-int SetDrawScreen(int DrawScreen);
-HWND GetMainWindowHandle(void);
-int ProcessMessage(void);
-int ClearDrawScreen(void);
-int ScreenFlip(void);
-int GetNowCount(void);
-int WaitTimer(int WaitTime);
-int GetHitKeyStateAll(char *KeyStateArray);
-int GetMousePoint(int *XBuff,int *YBuff);
-int GetMouseInput(void);
-int GetMouseWheelRotVol(void);
-int CheckSoundMem(int SoundHandle);
-int ChangeVolumeSoundMem(int Volume, int SoundHandle);
-int PlaySoundMem(int SoundHandle, int PlayType);
-int StopSoundMem(int SoundHandle);
-int SetMousePoint(int PointX, int PointY);
-int DrawGraph(int x, int y, int GrHandle, int TransFlag);
-int DrawRotaGraph(int x, int y, double ExRate, double Angle, int grHandle, int TransFlag);
-int SetDrawBlendMode(int BlendMode, int BlendParam);
-int DrawBox(int x1,int y1,int x2,int y2,unsigned int Color, int FillFlag);
+int ChangeWindowMode(int flag) { return(0); }
+
+void SetGraphMode(int ScreenSizeX, int ScreenSizeY, int Color)
+{
+	window_width = ScreenSizeX;
+	window_height = ScreenSizeY;
+	window_color = Color;
+
+	return;
+}
+
+int SetWindowStyleMode(int Mode) { return(0); }
+
+void SetMainWindowText(const TCHAR* WindowText)
+{
+	strcpy_s(title, strlen(title), WindowText);
+
+	return;
+}
+
+void SetWindowIconID(int ID)
+{
+	icon = MAKEINTRESOURCE(ID);
+
+	return;
+}
+
+void SetMouseDispFlag(int flag)
+{
+	mouse_disp_flag = flag;
+
+	return;
+}
+
+int SetDrawScreen(int DrawScreen){ return(0); }
+
+HWND GetMainWindowHandle(void)
+{
+	return(hWnd);
+}
+
+int ProcessMessage(void){ return(0); }
+int ClearDrawScreen(void) { return(0); }
+int ScreenFlip(void) { return(0); }
+int GetNowCount(void) { return(0); }
+int WaitTimer(int WaitTime) { return(0); }
+int GetHitKeyStateAll(char *KeyStateArray) { return(0); }
+int GetMousePoint(int *XBuff,int *YBuff) { return(0); }
+int GetMouseInput(void) { return(0); }
+int GetMouseWheelRotVol(void) { return(0); }
+int CheckSoundMem(int SoundHandle) { return(0); }
+int ChangeVolumeSoundMem(int Volume, int SoundHandle) { return(0); }
+int PlaySoundMem(int SoundHandle, int PlayType) { return(0); }
+int StopSoundMem(int SoundHandle) { return(0); }
+int SetMousePoint(int PointX, int PointY) { return(0); }
+int DrawGraph(int x, int y, int GrHandle, int TransFlag) { return(0); }
+int DrawRotaGraph(int x, int y, double ExRate, double Angle, int grHandle, int TransFlag) { return(0); }
+int SetDrawBlendMode(int BlendMode, int BlendParam) { return(0); }
+int DrawBox(int x1,int y1,int x2,int y2,unsigned int Color, int FillFlag) { return(0); }
+unsigned int GetColor(int Red, int Green, int Blue) { return(0); }
+int SetFontSize(int FontSize) { return(0); }
+int DrawNumber(int x, int y, unsigned int Color, int Number, int TransFlag) { return(0); }
+int LoadDivGraph(const TCHAR *FileName, int AllNum, int XNum, int YNum, int XSize, int YSize, int *HandleArray) { return(0); }
+int LoadGraph(const TCHAR *FileName) { return(0); }
+int DeleteGraph(int GrHandle) { return(0); }
+int GetGraphSize(int GrHandle, int *XBuff, int *YBUFF){ return(0); }
+int LoadSoundMem(const TCHAR* FileName) { return(0); }
+int DeleteSoundMem(int SoundHandle) { return(0); }
+
 //---------------------------------------------------------------------
 
 bool IsWindowClassRegi(PCTSTR wndclass, HINSTANCE inst)
@@ -81,7 +145,7 @@ bool IsWindowClassRegi(PCTSTR wndclass, HINSTANCE inst)
 	winc.cbWndExtra = 0;
 	winc.hInstance = inst;
 	winc.hCursor = LoadCursor(NULL, IDC_ARROW);
-	winc.hIcon = LoadIcon(inst, MY_WIN_ICON);
+	winc.hIcon = LoadIcon(inst, icon);
 	winc.hbrBackground = (HBRUSH)GetStockObject(WHITE_BRUSH);
 	winc.lpszMenuName = NULL;
 	winc.lpszClassName = wndclass;
@@ -99,7 +163,7 @@ void IsWindowCreate(HWND *wnd, PCTSTR wndclass, HINSTANCE inst)
 	*(wnd) = CreateWindowEx(
 		WS_EX_LEFT,
 		wndclass,
-		MY_WIN_TITLE,
+		title,
 		WS_CAPTION
 		| WS_SYSMENU
 		| WS_MINIMIZEBOX
@@ -108,8 +172,8 @@ void IsWindowCreate(HWND *wnd, PCTSTR wndclass, HINSTANCE inst)
 		| WS_VISIBLE,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
-		MY_WINDOW_WIDTH,
-		MY_WINDOW_HEIGHT,
+		window_width,
+		window_height,
 		NULL,
 		NULL,
 		inst,
@@ -125,8 +189,8 @@ void SetClientSize(HWND hWnd)
 
 	rect_set.top = 0;
 	rect_set.left = 0;
-	rect_set.right = MY_WINDOW_WIDTH;
-	rect_set.bottom = MY_WINDOW_HEIGHT;
+	rect_set.right = window_width;
+	rect_set.bottom = window_height;
 
 	GetWindowRect(hWnd, &rect_window);
 	GetClientRect(hWnd, &rect_client);

@@ -611,6 +611,7 @@ BOOL MY_CHECK_RECT_COLL(RECT, RECT);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
+	//--------------------------------初期設定設定---------------------------------
 	ChangeWindowMode(TRUE);	
 	SetGraphMode(WINDOW_WIDTH, WINDOW_HEIGHT, GAME_COLOR);
 	SetWindowStyleMode(GAME_WINDOW_BAR);
@@ -628,6 +629,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	SetDrawScreen(DX_SCREEN_BACK);
 
+	//--------------------------------マップの読込---------------------------------
 	for (int part = 0; part < GAME_MAP_PART_MAX; part++)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
@@ -758,6 +760,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		MessageBox(GetMainWindowHandle(), GOAL_ERR_CAPTION, GOAL_ERR_TITLE, MB_OK);	return -1;
 	}
 
+	//--------------------------------ゲームループ---------------------------------
 	while (GameLoop)
 	{
 		if (ProcessMessage() != 0) { break; }
@@ -793,6 +796,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	ScreenFlip();
 
+	//--------------------------------終了処理---------------------------------
 	enemyMove.clear();
 	enemyPt.clear();
 
@@ -978,12 +982,14 @@ VOID MY_START(VOID)
 
 VOID MY_START_PROC(VOID)
 {
+	//--------------------------------BGM再生---------------------------------
 	if (CheckSoundMem(BGM_TITLE.handle) == 0)
 	{
 		ChangeVolumeSoundMem(255 * 75 / 100, BGM_TITLE.handle);
 		PlaySoundMem(BGM_TITLE.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	//--------------------------------キー操作---------------------------------
 	if (MY_KEY_UP(KEY_INPUT_W) == TRUE || MY_KEY_UP(KEY_INPUT_UP) == TRUE)
 	{
 		NowChoice--;
@@ -996,6 +1002,7 @@ VOID MY_START_PROC(VOID)
 		NowChoice %= 3;
 	}
 
+	//--------------------------------ボタン選択枠の位置処理---------------------------------
 	switch (NowChoice)
 	{
 	case 0:
@@ -1009,98 +1016,103 @@ VOID MY_START_PROC(VOID)
 		break;
 	}
 
+	//--------------------------------ボタン選択処理---------------------------------
 	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
 	{
-		if (CheckSoundMem(BGM_TITLE.handle) != 0)
-		{
-			StopSoundMem(BGM_TITLE.handle);
-		}
 
-		SetMouseDispFlag(FALSE);
-
-		Scroll = mapScroll[0];
-
-		player.CenterX = startPt.x;
-		player.CenterY = startPt.y;
-		player.Part = startPt.part;
-
-		player.image.x = player.CenterX;
-		player.image.y = player.CenterY;
-
-		player.JumpCou = 0;
-		player.JumpFlg = FALSE;
-		player.JumpCan = FALSE;
-
-		player.Muki = 0;
-
-		for (int i = 0; i < GAME_ITEM_MAX; i++)player.Item[i] = FALSE;
-
-		for (int i = 0; i < (int)itemSpeed.size(); i++)itemSpeed[i].view = TRUE;
-		for (int i = 0; i < (int)itemMuteki.size(); i++)itemMuteki[i].view = TRUE;
-		for (int i = 0; i < (int)itemStop.size(); i++)itemStop[i].view = TRUE;
-
-		Speed.Cou = 0;
-		Speed.Up = 1;
-		Speed.Use = FALSE;
-		while (!Speed.Plog.empty())Speed.Plog.pop();
-
-		Muteki.Cou = 0;
-		Muteki.Up = 1;
-		Muteki.Use = FALSE;
-		while (!Muteki.Plog.empty())Muteki.Plog.pop();
-
-		Stop.Cou = 0;
-		Stop.Up = 1;
-		Stop.Use = FALSE;
-		while (!Stop.Plog.empty())Stop.Plog.pop();
-
-		SetMousePoint(player.image.x, player.image.y);
-
-		for (int i = 0; i < (int)enemyPt.size(); i++) 
-		{
-			ENEMY work = enemyTemp;
-			work.MoveAdd = - 2 * enemyMove[i];
-
-			work.view = TRUE;
-
-			work.CenterX = enemyPt[i].x;
-			work.CenterY = enemyPt[i].y;
-
-			work.image.x = work.CenterX;
-			work.image.y = work.CenterY;
-
-			work.Part = enemyPt[i].part;
-
-			work.tama.clear();
-
-			enemy.push_back(work);
-		}
-
-		TimeLim = 0;
-		TimeCou = 0;
-
-		TenmetsuCou = 0;
-		TenmetsuTime = 0;
-
-		for (int part = 0; part < GAME_MAP_PART_MAX; part++)
-		{
-			ImageBack[part].image.x = GAME_WIDTH / 2 - ImageBack[part].image.width / 2;
-			ImageBack[part].image.y = GAME_HEIGHT / 2 - ImageBack[part].image.height / 2;
-		}
-
+		//--------------------------------ボタン選択処理---------------------------------
 		switch (NowChoice)
 		{
 		case 0:
+			//--------------------------------プレイ画面初期化・遷移---------------------------------
 			GameEndKind = GAME_END_FAIL;
 			GameScene = GAME_SCENE_PLAY;
+
+			if (CheckSoundMem(BGM_TITLE.handle) != 0)
+			{
+				StopSoundMem(BGM_TITLE.handle);
+			}
+
+			SetMouseDispFlag(FALSE);
+
+			Scroll = mapScroll[0];
+
+			player.CenterX = startPt.x;
+			player.CenterY = startPt.y;
+			player.Part = startPt.part;
+
+			player.image.x = player.CenterX;
+			player.image.y = player.CenterY;
+
+			player.JumpCou = 0;
+			player.JumpFlg = FALSE;
+			player.JumpCan = FALSE;
+
+			player.Muki = 0;
+
+			for (int i = 0; i < GAME_ITEM_MAX; i++)player.Item[i] = FALSE;
+
+			for (int i = 0; i < (int)itemSpeed.size(); i++)itemSpeed[i].view = TRUE;
+			for (int i = 0; i < (int)itemMuteki.size(); i++)itemMuteki[i].view = TRUE;
+			for (int i = 0; i < (int)itemStop.size(); i++)itemStop[i].view = TRUE;
+
+			Speed.Cou = 0;
+			Speed.Up = 1;
+			Speed.Use = FALSE;
+			while (!Speed.Plog.empty())Speed.Plog.pop();
+
+			Muteki.Cou = 0;
+			Muteki.Up = 1;
+			Muteki.Use = FALSE;
+			while (!Muteki.Plog.empty())Muteki.Plog.pop();
+
+			Stop.Cou = 0;
+			Stop.Up = 1;
+			Stop.Use = FALSE;
+			while (!Stop.Plog.empty())Stop.Plog.pop();
+
+			SetMousePoint(player.image.x, player.image.y);
+
+			for (int i = 0; i < (int)enemyPt.size(); i++)
+			{
+				ENEMY work = enemyTemp;
+				work.MoveAdd = -2 * enemyMove[i];
+
+				work.view = TRUE;
+
+				work.CenterX = enemyPt[i].x;
+				work.CenterY = enemyPt[i].y;
+
+				work.image.x = work.CenterX;
+				work.image.y = work.CenterY;
+
+				work.Part = enemyPt[i].part;
+
+				work.tama.clear();
+
+				enemy.push_back(work);
+			}
+
+			TimeLim = 0;
+			TimeCou = 0;
+
+			TenmetsuCou = 0;
+			TenmetsuTime = 0;
+
+			for (int part = 0; part < GAME_MAP_PART_MAX; part++)
+			{
+				ImageBack[part].image.x = GAME_WIDTH / 2 - ImageBack[part].image.width / 2;
+				ImageBack[part].image.y = GAME_HEIGHT / 2 - ImageBack[part].image.height / 2;
+			}
 			break;
 
 		case 1:
+			//--------------------------------ルール画面遷移---------------------------------
 			GameScene = GAME_SCENE_RULE;
 			break;
 
 		case 2:
-			ImageTitleButtonNow.y = ImageTitleButtonEnd.y;
+			//--------------------------------ゲームループ終了処理---------------------------------
 			GameLoop = FALSE;
 			itemSpeed.clear();
 			itemMuteki.clear();
@@ -1111,6 +1123,7 @@ VOID MY_START_PROC(VOID)
 		return;
 	}
 
+	//--------------------------------ロゴ移動処理---------------------------------
 	if (ImageTitleROGO.rate < ImageTitleROGO.rateMAX)
 	{
 		ImageTitleROGO.rate += IMAGE_TITLE_ROGO_ROTA;
@@ -1125,14 +1138,17 @@ VOID MY_START_PROC(VOID)
 
 VOID MY_START_DRAW(VOID)
 {
+	//--------------------------------背景描画---------------------------------
 	DrawGraph(ImageTitleBK.x, ImageTitleBK.y, ImageTitleBK.handle, TRUE);
 
+	//--------------------------------ロゴ描画---------------------------------
 	DrawRotaGraph(
 		ImageTitleROGO.image.x, ImageTitleROGO.image.y,
 		ImageTitleROGO.rate,
 		ImageTitleROGO.angle,
 		ImageTitleROGO.image.handle, TRUE);
 
+	//--------------------------------ボタン・選択枠描画---------------------------------
 	DrawGraph(ImageTitleButtonPlay.x, ImageTitleButtonPlay.y, ImageTitleButtonPlay.handle, TRUE);
 	DrawGraph(ImageTitleButtonRule.x, ImageTitleButtonRule.y, ImageTitleButtonRule.handle, TRUE);
 	DrawGraph(ImageTitleButtonEnd.x, ImageTitleButtonEnd.y, ImageTitleButtonEnd.handle, TRUE);
@@ -1151,11 +1167,13 @@ VOID MY_RULE(VOID)
 
 VOID MY_RULE_PROC(VOID)
 {
+	//--------------------------------BGM再生---------------------------------
 	if (CheckSoundMem(BGM_TITLE.handle) == 0)
 	{
 		PlaySoundMem(BGM_TITLE.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	//--------------------------------タイトル画面遷移---------------------------------
 	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
 	{
 		if (CheckSoundMem(BGM_TITLE.handle) != 0)
@@ -1175,6 +1193,7 @@ VOID MY_RULE_PROC(VOID)
 
 VOID MY_RULE_DRAW(VOID)
 {
+	//--------------------------------ルール描画---------------------------------
 	DrawGraph(Image_RULE.x, Image_RULE.y, Image_RULE.handle, TRUE);
 	return;
 }
@@ -1189,6 +1208,7 @@ VOID MY_PLAY(VOID)
 
 VOID MY_PLAY_PROC(VOID)
 {
+	//--------------------------------BGM再生---------------------------------
 	if (CheckSoundMem(BGM.handle) == 0)
 	{
 		ChangeVolumeSoundMem(255 * 75 / 100, BGM.handle);
@@ -1196,12 +1216,15 @@ VOID MY_PLAY_PROC(VOID)
 		PlaySoundMem(BGM.handle, DX_PLAYTYPE_LOOP);
 	}
 
+	//--------------------------------プレイヤーの向き初期化---------------------------------
 	player.Muki = 0.0;
 
+	//--------------------------------時間処理---------------------------------
 	TenmetsuTime = TenmetsuCou / GAME_FPS;
 
 	TimeLim = GAME_TIME_LIMIT - TimeCou / GAME_FPS;
-	if (TimeLim <= 0)
+	//--------------------------------時間切れ処理---------------------------------
+	if (TimeLim <= 0)	
 	{
 		if (CheckSoundMem(BGM.handle) != 0)
 		{
@@ -1215,20 +1238,23 @@ VOID MY_PLAY_PROC(VOID)
 		return;
 	}
 
-	if (GAME_ITEM_USE_TIME - Speed.Cou / GAME_FPS <= 0)
+	//--------------------------------加速アイテム使用時間終了処理---------------------------------
+	if (GAME_ITEM_USE_TIME - Speed.Cou / GAME_FPS <= 0)	
 	{
 		Speed.Use = FALSE;
 		Speed.Up = 1;
 		Speed.Cou = 0;
 		while (!Speed.Plog.empty())Speed.Plog.pop();
 	}
-	if (GAME_ITEM_USE_TIME - Muteki.Cou / GAME_FPS <= 0)
+	//--------------------------------無敵アイテム使用時間終了処理---------------------------------
+	if (GAME_ITEM_USE_TIME - Muteki.Cou / GAME_FPS <= 0)		
 	{
 		Muteki.Use = FALSE;
 		Muteki.Up = 1;
 		Muteki.Cou = 0;
 		while (!Muteki.Plog.empty())Muteki.Plog.pop();
 	}
+	//--------------------------------停止アイテム使用時間終了処理---------------------------------
 	if (GAME_ITEM_USE_TIME - Stop.Cou / GAME_FPS <= 0)
 	{
 		Stop.Use = FALSE;
@@ -1237,10 +1263,11 @@ VOID MY_PLAY_PROC(VOID)
 		while (!Stop.Plog.empty())Stop.Plog.pop();
 	}
 
-
+	//--------------------------------プレイ処理本体---------------------------------
 	for (int SpeedCnt = 0; SpeedCnt < Speed.Up; SpeedCnt++)
 	{
-		if (mouse.Button[MOUSE_INPUT_RIGHT] == TRUE)
+		//--------------------------------途中終了処理---------------------------------
+		if (mouse.Button[MOUSE_INPUT_RIGHT] == TRUE)	
 		{
 			iPOINT R_ClickPt = mouse.Point;
 
@@ -1269,6 +1296,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------加速アイテム使用時処理---------------------------------
 		if (MY_KEY_DOWN(KEY_INPUT_1) && player.Item[ITEM_SPEED] == TRUE)
 		{
 			player.Item[ITEM_SPEED] = FALSE;
@@ -1277,6 +1305,7 @@ VOID MY_PLAY_PROC(VOID)
 			Speed.Cou = 0;
 			while (!Speed.Plog.empty())Speed.Plog.pop();
 		}
+		//--------------------------------無敵アイテム使用時処理---------------------------------
 		if (MY_KEY_DOWN(KEY_INPUT_2) && player.Item[ITEM_MUTEKI] == TRUE)
 		{
 			player.Item[ITEM_MUTEKI] = FALSE;
@@ -1285,6 +1314,7 @@ VOID MY_PLAY_PROC(VOID)
 			Muteki.Cou = 0;
 			while (!Muteki.Plog.empty())Muteki.Plog.pop();
 		}
+		//--------------------------------停止アイテム使用時処理---------------------------------
 		if (MY_KEY_DOWN(KEY_INPUT_3) && player.Item[ITEM_STOP] == TRUE)
 		{
 			player.Item[ITEM_STOP] = FALSE;
@@ -1294,6 +1324,7 @@ VOID MY_PLAY_PROC(VOID)
 			while (!Stop.Plog.empty())Stop.Plog.pop();
 		}
 
+		//--------------------------------キャラ操作処理---------------------------------
 		if (MY_KEY_DOWN(KEY_INPUT_UP) || MY_KEY_DOWN(KEY_INPUT_W))
 		{
 
@@ -1395,6 +1426,7 @@ VOID MY_PLAY_PROC(VOID)
 		}
 		if (Scroll == YOKO_SCROLL && SpeedCnt == 0)
 		{
+			//--------------------------------ジャンプ時処理---------------------------------
 			if (player.JumpFlg == TRUE)
 			{
 
@@ -1479,6 +1511,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------プレイヤーの当たり判定設定---------------------------------
 		player.coll.left = player.CenterX - player.image.width / 2 + 5;
 		player.coll.top = player.CenterY - player.image.height / 2 + 5;
 		player.coll.right = player.CenterX + player.image.width / 2 - 5;
@@ -1502,6 +1535,7 @@ VOID MY_PLAY_PROC(VOID)
 		PlayerRect.right = player.image.x + player.image.width - 20;
 		PlayerRect.bottom = player.image.y + player.image.height - 20;
 
+		//--------------------------------ゴール処理---------------------------------
 		if (player.Part == GAME_MAP_PART_MAX - 1 && MY_CHECK_RECT_COLL(PlayerRect, GoalRect) == TRUE)
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
@@ -1518,6 +1552,7 @@ VOID MY_PLAY_PROC(VOID)
 			return;
 		}
 
+		//--------------------------------ステージ移動処理---------------------------------
 		for (int i = 0; i < (int)FromWarp.size(); i++)
 		{
 			RECT From;
@@ -1545,6 +1580,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------即死ブロック処理---------------------------------
 		for (int i = 0; i < (int)Sokushi.size(); i++)
 		{
 			RECT Work;
@@ -1570,6 +1606,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------加速アイテム取得処理---------------------------------
 		for (int i = 0; i < (int)itemSpeed.size(); i++)
 		{
 			RECT Work;
@@ -1585,6 +1622,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------無敵アイテム取得処理---------------------------------
 		for (int i = 0; i < (int)itemMuteki.size(); i++)
 		{
 			RECT Work;
@@ -1600,6 +1638,7 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
+		//--------------------------------停止アイテム取得処理---------------------------------
 		for (int i = 0; i < (int)itemStop.size(); i++)
 		{
 			RECT Work;
@@ -1615,61 +1654,65 @@ VOID MY_PLAY_PROC(VOID)
 			}
 		}
 
-		for (int i = 0; i < (int)enemy.size(); i++)
+		//--------------------------------敵移動・接触処理---------------------------------
+		if (Scroll == TATE_SCROLL)
 		{
-			if (enemy[i].view == TRUE && enemy[i].Part == player.Part)
+			for (int i = 0; i < (int)enemy.size(); i++)
 			{
-				if(SpeedCnt == 0 && !Stop.Use)enemy[i].CenterX += enemy[i].MoveAdd;
-				if (MY_CHECK_MAP1_PLAYER_COLL(enemy[i].coll) == TRUE)
+				if (enemy[i].view == TRUE && enemy[i].Part == player.Part)
 				{
-					enemy[i].CenterX -= enemy[i].MoveAdd * 2;
-					enemy[i].MoveAdd *= -1;
-				}
-				enemy[i].coll.left = enemy[i].CenterX - enemy[i].image.width / 2;
-				enemy[i].coll.top = enemy[i].CenterY - enemy[i].image.height / 2;
-				enemy[i].coll.right = enemy[i].CenterX + enemy[i].image.width / 2;
-				enemy[i].coll.bottom = enemy[i].CenterY + enemy[i].image.height / 2;
-
-				if (enemy[i].image.x >= 0 && enemy[i].image.x <= GAME_WIDTH)
-				{
-					enemy[i].image.x = enemy[i].CenterX - enemy[i].image.width / 2;
-					enemy[i].image.y = enemy[i].CenterY - enemy[i].image.height / 2;
-				}
-
-				if (MY_CHECK_RECT_COLL(PlayerRect, enemy[i].coll) == TRUE && !Muteki.Use)
-				{
-					if (CheckSoundMem(BGM.handle) != 0)
+					if (SpeedCnt == 0 && !Stop.Use)enemy[i].CenterX += enemy[i].MoveAdd;
+					if (MY_CHECK_MAP1_PLAYER_COLL(enemy[i].coll) == TRUE)
 					{
-						StopSoundMem(BGM.handle);
+						enemy[i].CenterX -= enemy[i].MoveAdd * 2;
+						enemy[i].MoveAdd *= -1;
 					}
-					SetMouseDispFlag(TRUE);
+					enemy[i].coll.left = enemy[i].CenterX - enemy[i].image.width / 2;
+					enemy[i].coll.top = enemy[i].CenterY - enemy[i].image.height / 2;
+					enemy[i].coll.right = enemy[i].CenterX + enemy[i].image.width / 2;
+					enemy[i].coll.bottom = enemy[i].CenterY + enemy[i].image.height / 2;
 
-					GameEndKind = GAME_END_FAIL;
+					if (enemy[i].image.x >= 0 && enemy[i].image.x <= GAME_WIDTH)
+					{
+						enemy[i].image.x = enemy[i].CenterX - enemy[i].image.width / 2;
+						enemy[i].image.y = enemy[i].CenterY - enemy[i].image.height / 2;
+					}
 
-					GameScene = GAME_SCENE_END;
+					if (MY_CHECK_RECT_COLL(PlayerRect, enemy[i].coll) == TRUE && !Muteki.Use)
+					{
+						if (CheckSoundMem(BGM.handle) != 0)
+						{
+							StopSoundMem(BGM.handle);
+						}
+						SetMouseDispFlag(TRUE);
 
-					return;
-				}
+						GameEndKind = GAME_END_FAIL;
 
-				if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0 && !Stop.Use)
-				{
-					TAMA work = tamaTemp;
-					work.x = enemy[i].CenterX - work.width / 2;
-					work.y = enemy[i].CenterY - work.height / 2;
+						GameScene = GAME_SCENE_END;
 
-					work.coll.left = work.x;
-					work.coll.right = work.x + work.width;
-					work.coll.top = work.y;
-					work.coll.bottom = work.y + work.height;
+						return;
+					}
 
-					work.speedY = CHARA_SPEED_HIGH;
+					if (TimeCou % (GAME_ENEMY_SHOT_SPAN * GAME_FPS) == 0 && SpeedCnt == 0 && !Stop.Use)
+					{
+						TAMA work = tamaTemp;
+						work.x = enemy[i].CenterX - work.width / 2;
+						work.y = enemy[i].CenterY - work.height / 2;
 
-					enemy[i].tama.push_back(work);
+						work.coll.left = work.x;
+						work.coll.right = work.x + work.width;
+						work.coll.top = work.y;
+						work.coll.bottom = work.y + work.height;
+
+						work.speedY = CHARA_SPEED_HIGH;
+
+						enemy[i].tama.push_back(work);
+					}
 				}
 			}
 		}
 
-
+		//--------------------------------落下死処理---------------------------------
 		if (Scroll == YOKO_SCROLL && player.image.y > GAME_HEIGHT)
 		{
 			if (CheckSoundMem(BGM.handle) != 0)
@@ -1692,21 +1735,28 @@ VOID MY_PLAY_PROC(VOID)
 
 VOID MY_PLAY_DRAW(VOID)
 {
+	//--------------------------------背景描画---------------------------------
 	DrawGraph(ImageBack[player.Part % IMAGE_BACK_NUM].image.x, ImageBack[player.Part % IMAGE_BACK_NUM].image.y, ImageBack[player.Part % IMAGE_BACK_NUM].image.handle, TRUE);
 
+	//--------------------------------横スクロール時描画処理---------------------------------
 	if (Scroll == YOKO_SCROLL)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
+			//--------------------------------プレイヤー位置による描画処理分岐---------------------------------
+
+				//--------------------------------マップ端以外---------------------------------
 				if (player.CenterX > (GAME_WIDTH / 2) && player.CenterX <= (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
 				{
+					//--------------------------------画面外マップの描画省略---------------------------------
 					if (player.CenterX - (GAME_WIDTH / 2) - mapChip.width <= map[player.Part][tate][yoko].x &&
 						map[player.Part][tate][yoko].x <= player.CenterX + (GAME_WIDTH / 2) &&
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
+						//--------------------------------マップ描画処理---------------------------------
 						if(map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (player.CenterX - (GAME_WIDTH / 2)),
@@ -1714,6 +1764,7 @@ VOID MY_PLAY_DRAW(VOID)
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 
+						//--------------------------------アイテム描画処理---------------------------------
 						for(int i = 0; i < (int)itemSpeed.size(); i++)
 							if(itemSpeed[i].view && itemSpeed[i].Part == player.Part)
 							DrawGraph(
@@ -1736,6 +1787,7 @@ VOID MY_PLAY_DRAW(VOID)
 									itemStop[i].image.handle,
 									TRUE);
 
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
 						for (int i = 0; i < (int)Speed.Plog.size(); i++)
 						{
 							CHARA work = Speed.Plog.front();
@@ -1750,8 +1802,10 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 						if(!Speed.Plog.empty())Speed.Plog.pop();
 
+						//--------------------------------プレイヤー描画処理---------------------------------
 						DrawRotaGraph(player.image.x - (player.CenterX - (GAME_WIDTH / 2)) + player.image.width/2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
 						if (Muteki.Use)
 						{
 							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
@@ -1765,13 +1819,15 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 					}
 				}
+				//--------------------------------マップ右端---------------------------------
 				else if (player.CenterX > (GAME_MAP_YOKO_MAX * mapChip.width) - (GAME_WIDTH / 2))
 				{
+					//--------------------------------画面外マップの描画省略---------------------------------
 					if ((GAME_MAP_YOKO_MAX) * mapChip.width - GAME_WIDTH - mapChip.width <= map[player.Part][tate][yoko].x &&
-						map[player.Part][tate][yoko].x <= (GAME_MAP_YOKO_MAX + 1) * mapChip.width &&
 						0 <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
+						//--------------------------------マップ描画処理---------------------------------
 						if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
 						DrawGraph(
 							map[player.Part][tate][yoko].x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH),
@@ -1779,6 +1835,7 @@ VOID MY_PLAY_DRAW(VOID)
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 
+						//--------------------------------アイテム描画処理---------------------------------
 						for (int i = 0; i < (int)itemSpeed.size(); i++)
 							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
 							DrawGraph(
@@ -1801,6 +1858,7 @@ VOID MY_PLAY_DRAW(VOID)
 									itemStop[i].image.handle,
 									TRUE);
 
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
 						for (int i = 0; i < (int)Speed.Plog.size(); i++)
 						{
 							CHARA work = Speed.Plog.front();
@@ -1815,8 +1873,10 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 						if (!Speed.Plog.empty())Speed.Plog.pop();
 
+						//--------------------------------プレイヤー描画処理---------------------------------
 						DrawRotaGraph(player.image.x - (GAME_MAP_YOKO_MAX * mapChip.width - GAME_WIDTH) + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
 
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
 						if (Muteki.Use)
 						{
 							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
@@ -1830,89 +1890,106 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 					}
 				}
+				//--------------------------------マップ左端---------------------------------
 				else
 				{
-				if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
-					DrawGraph(
-						map[player.Part][tate][yoko].x,
-						map[player.Part][tate][yoko].y,
-						mapChip.handle[map[player.Part][tate][yoko].kind],
-						TRUE);
-
-					for (int i = 0; i < (int)itemSpeed.size(); i++)
-						if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
-							DrawGraph(
-								itemSpeed[i].image.x,
-								itemSpeed[i].image.y,
-								itemSpeed[i].image.handle,
-								TRUE);
-					for (int i = 0; i < (int)itemMuteki.size(); i++)
-						if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
-							DrawGraph(
-								itemMuteki[i].image.x,
-								itemMuteki[i].image.y,
-								itemMuteki[i].image.handle,
-								TRUE);
-					for (int i = 0; i < (int)itemStop.size(); i++)
-						if (itemStop[i].view && itemStop[i].Part == player.Part)
-							DrawGraph(
-								itemStop[i].image.x,
-								itemStop[i].image.y,
-								itemStop[i].image.handle,
-								TRUE);
-
-					for (int i = 0; i < (int)Speed.Plog.size(); i++)
+					//--------------------------------画面外マップの描画省略---------------------------------
+					if (GAME_WIDTH + mapChip.width >= map[player.Part][tate][yoko].x &&
+						0 <= map[player.Part][tate][yoko].y &&
+						map[player.Part][tate][yoko].y < GAME_HEIGHT + mapChip.height)
 					{
-						CHARA work = Speed.Plog.front();
-						Speed.Plog.pop();
-						Speed.Plog.push(work);
-						if (work.Part == player.Part)
-							DrawRotaGraph(work.image.x + work.image.width / 2,
-								work.image.y + work.image.height / 2,
-								1.0,
-								work.Muki / 18 * M_PI,
-								work.image.handle, TRUE);
-					}
-					if (!Speed.Plog.empty())Speed.Plog.pop();
+						//--------------------------------マップ描画処理---------------------------------
+						if (map[player.Part][tate][yoko].kind != b || (map[player.Part][tate][yoko].kind == b && TenmetsuTime % GAME_TENMETSU_SPAN != 0))
+							DrawGraph(
+								map[player.Part][tate][yoko].x,
+								map[player.Part][tate][yoko].y,
+								mapChip.handle[map[player.Part][tate][yoko].kind],
+								TRUE);
 
-					DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+						//--------------------------------アイテム描画処理---------------------------------
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+								DrawGraph(
+									itemSpeed[i].image.x,
+									itemSpeed[i].image.y,
+									itemSpeed[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x,
+									itemMuteki[i].image.y,
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x,
+									itemStop[i].image.y,
+									itemStop[i].image.handle,
+									TRUE);
 
-					if (Muteki.Use)
-					{
-						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
-						DrawBox(player.image.x - player.image.width / 2,
-							player.image.y,
-							player.image.x + player.image.width + player.image.width / 2,
-							player.image.y + player.image.height,
-							GetColor(200, 200, 255),
-							TRUE);
-						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
+						for (int i = 0; i < (int)Speed.Plog.size(); i++)
+						{
+							CHARA work = Speed.Plog.front();
+							Speed.Plog.pop();
+							Speed.Plog.push(work);
+							if (work.Part == player.Part)
+								DrawRotaGraph(work.image.x + work.image.width / 2,
+									work.image.y + work.image.height / 2,
+									1.0,
+									work.Muki / 18 * M_PI,
+									work.image.handle, TRUE);
+						}
+						if (!Speed.Plog.empty())Speed.Plog.pop();
+
+						//--------------------------------プレイヤー描画処理---------------------------------
+						DrawRotaGraph(player.image.x + player.image.width / 2, player.image.y + player.image.height / 2, 1.0, player.Muki / 18 * M_PI, player.image.handle, TRUE);
+
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - player.image.width / 2,
+								player.image.y,
+								player.image.x + player.image.width + player.image.width / 2,
+								player.image.y + player.image.height,
+								GetColor(200, 200, 255),
+								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
 					}
 				}
 			}
 		}
 	}
 
+	//--------------------------------縦スクロール時描画処理---------------------------------
 	if (Scroll == TATE_SCROLL)
 	{
 		for (int tate = 0; tate < GAME_MAP_TATE_MAX; tate++)
 		{
 			for (int yoko = 0; yoko < GAME_MAP_YOKO_MAX; yoko++)
 			{
+			//--------------------------------プレイヤー位置による描画処理分岐---------------------------------
 
+				//--------------------------------マップ端以外---------------------------------
 				if (player.CenterY > (GAME_HEIGHT / 2) && player.CenterY <= (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
 				{
+					//--------------------------------画面外マップの描画省略---------------------------------
 					if (player.CenterY - (GAME_HEIGHT / 2) - mapChip.height <= map[player.Part][tate][yoko].y &&
 						map[player.Part][tate][yoko].y <= player.CenterY + (GAME_HEIGHT / 2) &&
 						0 <= map[player.Part][tate][yoko].x &&
 						map[player.Part][tate][yoko].x < GAME_WIDTH + mapChip.width)
 					{
+						//--------------------------------マップの描画処理---------------------------------
 						DrawGraph(
 							map[player.Part][tate][yoko].x,
 							map[player.Part][tate][yoko].y - (player.CenterY - (GAME_HEIGHT / 2)),
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
-
+						//--------------------------------アイテムの描画処理---------------------------------
 						for (int i = 0; i < (int)itemSpeed.size(); i++)
 							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
 							DrawGraph(
@@ -1935,6 +2012,7 @@ VOID MY_PLAY_DRAW(VOID)
 									itemStop[i].image.handle,
 									TRUE);
 
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
 						for (int i = 0; i < (int)Speed.Plog.size(); i++)
 						{
 							CHARA work = Speed.Plog.front();
@@ -1947,8 +2025,10 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 						if (!Speed.Plog.empty())Speed.Plog.pop();
 
+						//--------------------------------プレイヤーの描画処理---------------------------------
 						DrawGraph(player.image.x, player.image.y - (player.CenterY - (GAME_HEIGHT / 2)), player.image.handle, TRUE);
 
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
 						if (Muteki.Use)
 						{
 							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
@@ -1961,6 +2041,7 @@ VOID MY_PLAY_DRAW(VOID)
 							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 						}
 
+						//--------------------------------敵描画処理---------------------------------
 						for (int i = 0; i < (int)enemy.size(); i++)
 						{
 							if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
@@ -1971,19 +2052,23 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 					}
 				}
+
+				//--------------------------------マップ下端---------------------------------
 				else if (player.CenterY > (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
 				{
+					//--------------------------------画面外マップの描画省略---------------------------------
 					if ((GAME_MAP_TATE_MAX) * mapChip.height - GAME_HEIGHT - mapChip.height <= map[player.Part][tate][yoko].y &&
-						map[player.Part][tate][yoko].y <= (GAME_MAP_TATE_MAX + 1) * mapChip.height &&
 						0 <= map[player.Part][tate][yoko].x &&
 						map[player.Part][tate][yoko].x < GAME_WIDTH + mapChip.width)
 					{
+						//--------------------------------マップ描画処理---------------------------------
 						DrawGraph(
 							map[player.Part][tate][yoko].x,
 							map[player.Part][tate][yoko].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
 							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
 
+						//--------------------------------アイテム描画処理---------------------------------
 						for (int i = 0; i < (int)itemSpeed.size(); i++)
 							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
 							DrawGraph(
@@ -2006,6 +2091,7 @@ VOID MY_PLAY_DRAW(VOID)
 									itemStop[i].image.handle,
 									TRUE);
 
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
 						for (int i = 0; i < (int)Speed.Plog.size(); i++)
 						{
 							CHARA work = Speed.Plog.front();
@@ -2018,8 +2104,10 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 						if (!Speed.Plog.empty())Speed.Plog.pop();
 
+						//--------------------------------プレイヤー描画処理---------------------------------
 						DrawGraph(player.image.x, player.image.y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT), player.image.handle, TRUE);
 
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
 						if (Muteki.Use)
 						{
 							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
@@ -2032,6 +2120,7 @@ VOID MY_PLAY_DRAW(VOID)
 							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 						}
 
+						//--------------------------------敵描画処理---------------------------------
 						for (int i = 0; i < (int)enemy.size(); i++)
 						{
 							if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
@@ -2043,79 +2132,97 @@ VOID MY_PLAY_DRAW(VOID)
 						}
 					}
 				}
+
+				//--------------------------------マップ上端---------------------------------
 				else
 				{
-					DrawGraph(
-						map[player.Part][tate][yoko].x,
-						map[player.Part][tate][yoko].y,
-						mapChip.handle[map[player.Part][tate][yoko].kind],
-						TRUE);
-
-					for (int i = 0; i < (int)itemSpeed.size(); i++)
-						if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+					//--------------------------------画面外マップの描画省略---------------------------------
+					if (GAME_HEIGHT + mapChip.height >= map[player.Part][tate][yoko].y &&
+						0 <= map[player.Part][tate][yoko].x &&
+						map[player.Part][tate][yoko].x < GAME_WIDTH + mapChip.width)
+					{
+						//--------------------------------マップ描画処理---------------------------------
 						DrawGraph(
-							itemSpeed[i].image.x,
-							itemSpeed[i].image.y,
-							itemSpeed[i].image.handle,
+							map[player.Part][tate][yoko].x,
+							map[player.Part][tate][yoko].y,
+							mapChip.handle[map[player.Part][tate][yoko].kind],
 							TRUE);
-					for (int i = 0; i < (int)itemMuteki.size(); i++)
-						if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
-							DrawGraph(
-								itemMuteki[i].image.x,
-								itemMuteki[i].image.y,
-								itemMuteki[i].image.handle,
+
+						//--------------------------------アイテム描画処理---------------------------------
+						for (int i = 0; i < (int)itemSpeed.size(); i++)
+							if (itemSpeed[i].view && itemSpeed[i].Part == player.Part)
+								DrawGraph(
+									itemSpeed[i].image.x,
+									itemSpeed[i].image.y,
+									itemSpeed[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemMuteki.size(); i++)
+							if (itemMuteki[i].view && itemMuteki[i].Part == player.Part)
+								DrawGraph(
+									itemMuteki[i].image.x,
+									itemMuteki[i].image.y,
+									itemMuteki[i].image.handle,
+									TRUE);
+						for (int i = 0; i < (int)itemStop.size(); i++)
+							if (itemStop[i].view && itemStop[i].Part == player.Part)
+								DrawGraph(
+									itemStop[i].image.x,
+									itemStop[i].image.y,
+									itemStop[i].image.handle,
+									TRUE);
+
+						//--------------------------------加速アイテム使用エフェクト描画処理---------------------------------
+						for (int i = 0; i < (int)Speed.Plog.size(); i++)
+						{
+							CHARA work = Speed.Plog.front();
+							Speed.Plog.pop();
+							Speed.Plog.push(work);
+							if (work.Part == player.Part)
+								DrawGraph(work.image.x,
+									work.image.y,
+									work.image.handle, TRUE);
+						}
+						if (!Speed.Plog.empty())Speed.Plog.pop();
+
+						//--------------------------------プレイヤー描画処理---------------------------------
+						DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
+
+						//--------------------------------無敵アイテム使用エフェクト描画処理---------------------------------
+						if (Muteki.Use)
+						{
+							SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
+							DrawBox(player.image.x - player.image.width / 2,
+								player.image.y,
+								player.image.x + player.image.width + player.image.width / 2,
+								player.image.y + player.image.height,
+								GetColor(200, 200, 255),
 								TRUE);
-					for (int i = 0; i < (int)itemStop.size(); i++)
-						if (itemStop[i].view && itemStop[i].Part == player.Part)
-							DrawGraph(
-								itemStop[i].image.x,
-								itemStop[i].image.y,
-								itemStop[i].image.handle,
-								TRUE);
+							SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+						}
 
-					for (int i = 0; i < (int)Speed.Plog.size(); i++)
-					{
-						CHARA work = Speed.Plog.front();
-						Speed.Plog.pop();
-						Speed.Plog.push(work);
-						if (work.Part == player.Part)
-							DrawGraph(work.image.x,
-								work.image.y,
-								work.image.handle, TRUE);
-					}
-					if (!Speed.Plog.empty())Speed.Plog.pop();
-
-					DrawGraph(player.image.x, player.image.y, player.image.handle, TRUE);
-
-					if (Muteki.Use)
-					{
-						SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
-						DrawBox(player.image.x - player.image.width / 2,
-							player.image.y,
-							player.image.x + player.image.width + player.image.width / 2,
-							player.image.y + player.image.height,
-							GetColor(200, 200, 255),
-							TRUE);
-						SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
-					}
-
-					for (int i = 0; i < (int)enemy.size(); i++)
-					{
-						if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
-							DrawGraph(enemy[i].image.x,
-								enemy[i].image.y,
-								enemy[i].image.handle,
-								TRUE);
+						//--------------------------------敵描画処理---------------------------------
+						for (int i = 0; i < (int)enemy.size(); i++)
+						{
+							if (enemy[i].view == TRUE && enemy[i].Part == player.Part) {
+								DrawGraph(enemy[i].image.x,
+									enemy[i].image.y,
+									enemy[i].image.handle,
+									TRUE);
+							}
 						}
 					}
 				}
 			}
 		}
 
+		//--------------------------------敵描画処理---------------------------------
 		for (int i = 0; i < (int)enemy.size(); i++)
 		{
 			for (int cnt = 0; cnt < (int)enemy[i].tama.size(); cnt++)
 			{
+				//--------------------------------プレイヤー位置による描画処理分岐---------------------------------
+
+				//--------------------------------マップ端以外---------------------------------
 				if (player.CenterY > (GAME_HEIGHT / 2) && player.CenterY <= (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
 				{
 					DrawGraph(
@@ -2123,6 +2230,7 @@ VOID MY_PLAY_DRAW(VOID)
 						enemy[i].tama[cnt].y - (player.CenterY - (GAME_HEIGHT / 2)),
 						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
 				}
+				//--------------------------------マップ下端---------------------------------
 				else if (player.CenterY > (GAME_MAP_TATE_MAX * mapChip.height) - (GAME_HEIGHT / 2))
 				{
 					DrawGraph(
@@ -2130,6 +2238,7 @@ VOID MY_PLAY_DRAW(VOID)
 						enemy[i].tama[cnt].y - (GAME_MAP_TATE_MAX * mapChip.height - GAME_HEIGHT),
 						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
 				}
+				//--------------------------------マップ上端---------------------------------
 				else
 				{
 					DrawGraph(
@@ -2138,6 +2247,7 @@ VOID MY_PLAY_DRAW(VOID)
 						enemy[i].tama[cnt].handle[enemy[i].tama[cnt].nowImageKind], TRUE);
 				}
 
+				//--------------------------------弾の画像切り替え処理---------------------------------
 				if (enemy[i].tama[cnt].changeImageCnt < enemy[i].tama[cnt].changeImageCntMAX && !Stop.Use)
 				{
 					enemy[i].tama[cnt].changeImageCnt++;
@@ -2156,6 +2266,7 @@ VOID MY_PLAY_DRAW(VOID)
 					enemy[i].tama[cnt].changeImageCnt = 0;
 				}
 
+				//--------------------------------マップ外に存在する弾の削除---------------------------------
 				if (enemy[i].tama[cnt].y < 0 || enemy[i].tama[cnt].y > GAME_MAP_TATE_MAX * mapChip.height)
 				{
 					enemy[i].tama.erase(enemy[i].tama.begin() + cnt);
@@ -2163,6 +2274,7 @@ VOID MY_PLAY_DRAW(VOID)
 				}
 				else
 				{
+					//--------------------------------弾の移動---------------------------------
 					if (!Stop.Use)
 					{
 						enemy[i].tama[cnt].y += enemy[i].tama[cnt].speedY;
@@ -2170,6 +2282,7 @@ VOID MY_PLAY_DRAW(VOID)
 						enemy[i].tama[cnt].coll.bottom += enemy[i].tama[cnt].speedY;
 					}
 
+					//--------------------------------弾の当たり判定・エンド画面遷移---------------------------------
 					if (enemy[i].Part == player.Part && MY_CHECK_RECT_COLL(enemy[i].tama[cnt].coll, player.coll) == TRUE && !Muteki.Use)
 					{
 						if (CheckSoundMem(BGM.handle) != 0)
@@ -2190,6 +2303,7 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
+	//--------------------------------アイテム描画処理---------------------------------
 	for (int i = 0; i < GAME_ITEM_MAX; i++)
 	{
 		DrawBox(45 + 64 * i, 15, 119 + 64 * i, 89, GetColor(0, 0, 0), TRUE);
@@ -2219,6 +2333,7 @@ VOID MY_PLAY_DRAW(VOID)
 		}
 	}
 
+	//--------------------------------アイテム使用時間描画処理---------------------------------
 	if (Speed.Use)
 	{
 		SetFontSize(60);
@@ -2255,6 +2370,7 @@ VOID MY_PLAY_DRAW(VOID)
 			TRUE);
 	}
 
+	//--------------------------------停止アイテム使用エフェクト描画処理---------------------------------
 	if (Stop.Use)
 	{
 		SetDrawBlendMode(DX_BLENDMODE_ALPHA, 50);
@@ -2262,6 +2378,7 @@ VOID MY_PLAY_DRAW(VOID)
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 	}
 
+	//--------------------------------制限時間描画処理---------------------------------
 	DrawBox(WINDOW_WIDTH - 155, 15, WINDOW_WIDTH - 45, 75, GetColor(0, 0, 0), TRUE);
 	DrawBox(WINDOW_WIDTH - 150, 20, WINDOW_WIDTH - 50, 70, GetColor(110, 110, 110), TRUE);
 	SetFontSize(48);
@@ -2282,6 +2399,7 @@ VOID MY_END_PROC(VOID)
 {
 	if (MY_KEY_UP(KEY_INPUT_RETURN) == TRUE)
 	{
+		//--------------------------------タイトル画面遷移---------------------------------
 		if (CheckSoundMem(BGM_COMP.handle) != 0)
 		{
 			StopSoundMem(BGM_COMP.handle);
@@ -2303,6 +2421,7 @@ VOID MY_END_PROC(VOID)
 
 	switch (GameEndKind)
 	{
+	//--------------------------------ゲームクリア時処理---------------------------------
 	case GAME_END_COMP:
 
 		if (CheckSoundMem(BGM_COMP.handle) == 0)
@@ -2325,6 +2444,7 @@ VOID MY_END_PROC(VOID)
 		}
 		break;
 
+	//--------------------------------ゲームオーバー時処理---------------------------------
 	case GAME_END_FAIL:
 
 		if (CheckSoundMem(BGM_FAIL.handle) == 0)
@@ -2360,6 +2480,7 @@ VOID MY_END_DRAW(VOID)
 
 	switch (GameEndKind)
 	{
+	//--------------------------------ゲームクリア画面描画処理---------------------------------
 	case GAME_END_COMP:
 		if (ImageEndCOMP.IsDraw == TRUE)
 		{
@@ -2367,6 +2488,7 @@ VOID MY_END_DRAW(VOID)
 		}
 		break;
 
+	//--------------------------------ゲームオーバー画面描画処理---------------------------------
 	case GAME_END_FAIL:
 		if (ImageEndFAIL.IsDraw == TRUE)
 		{
@@ -2381,6 +2503,7 @@ VOID MY_END_DRAW(VOID)
 
 BOOL MY_LOAD_IMAGE(VOID)
 {
+	//--------------------------------タイトル画面背景画像読込---------------------------------
 	strcpy_s(ImageTitleBK.path, IMAGE_TITLE_BK_PATH);
 	ImageTitleBK.handle = LoadGraph(ImageTitleBK.path);
 	if (ImageTitleBK.handle == -1)
@@ -2392,6 +2515,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleBK.x = WINDOW_WIDTH / 2 - ImageTitleBK.width / 2;
 	ImageTitleBK.y = WINDOW_HEIGHT / 2 - ImageTitleBK.height / 2;
 
+	//--------------------------------タイトル画面ロゴ画像読込---------------------------------
 	strcpy_s(ImageTitleROGO.image.path, IMAGE_TITLE_ROGO_PATH);
 	ImageTitleROGO.image.handle = LoadGraph(ImageTitleROGO.image.path);
 	if (ImageTitleROGO.image.handle == -1)
@@ -2407,6 +2531,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleROGO.rate = 0.0;
 	ImageTitleROGO.rateMAX = IMAGE_TITLE_ROGO_ROTA_MAX;
 
+	//--------------------------------タイトル画面プレイボタン画像読込---------------------------------
 	strcpy_s(ImageTitleButtonPlay.path, IMAGE_TITLE_BUTTON_PLAY_PATH);
 	ImageTitleButtonPlay.handle = LoadGraph(ImageTitleButtonPlay.path);
 	if (ImageTitleButtonPlay.handle == -1)
@@ -2418,6 +2543,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleButtonPlay.x = WINDOW_WIDTH / 2 - ImageTitleButtonPlay.width / 2;
 	ImageTitleButtonPlay.y = ImageTitleROGO.image.y + ImageTitleROGO.image.height / 2 + IMAGE_TITLE_BUTTON_SPAN;
 
+	//--------------------------------タイトル画面ルールボタン画像読込---------------------------------
 	strcpy_s(ImageTitleButtonRule.path, IMAGE_TITLE_BUTTON_RULE_PATH);
 	ImageTitleButtonRule.handle = LoadGraph(ImageTitleButtonRule.path);
 	if (ImageTitleButtonRule.handle == -1)
@@ -2429,6 +2555,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleButtonRule.x = WINDOW_WIDTH / 2 - ImageTitleButtonRule.width / 2;
 	ImageTitleButtonRule.y = ImageTitleButtonPlay.y + ImageTitleButtonPlay.height + IMAGE_TITLE_BUTTON_SPAN;
 
+	//--------------------------------タイトル画面終了ボタン画像読込---------------------------------
 	strcpy_s(ImageTitleButtonEnd.path, IMAGE_TITLE_BUTTON_END_PATH);
 	ImageTitleButtonEnd.handle = LoadGraph(ImageTitleButtonEnd.path);
 	if (ImageTitleButtonEnd.handle == -1)
@@ -2440,6 +2567,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleButtonEnd.x = WINDOW_WIDTH / 2 - ImageTitleButtonEnd.width / 2;
 	ImageTitleButtonEnd.y = ImageTitleButtonRule.y + ImageTitleButtonRule.height + IMAGE_TITLE_BUTTON_SPAN;
 
+	//--------------------------------タイトル画面ボタン選択枠画像読込---------------------------------
 	strcpy_s(ImageTitleButtonNow.path, IMAGE_TITLE_BUTTON_NOW_PATH);
 	ImageTitleButtonNow.handle = LoadGraph(ImageTitleButtonNow.path);
 	if (ImageTitleButtonNow.handle == -1)
@@ -2451,6 +2579,8 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageTitleButtonNow.x = WINDOW_WIDTH / 2 - ImageTitleButtonNow.width / 2;
 	ImageTitleButtonNow.y = ImageTitleButtonPlay.y;
 
+
+	//--------------------------------ルール画面画像読込---------------------------------
 	strcpy_s(Image_RULE.path, IMAGE_RULE_PATH);
 	Image_RULE.handle = LoadGraph(Image_RULE.path);
 	if (Image_RULE.handle == -1)
@@ -2462,39 +2592,12 @@ BOOL MY_LOAD_IMAGE(VOID)
 	Image_RULE.x = WINDOW_WIDTH / 2 - Image_RULE.width / 2;
 	Image_RULE.y = 0;
 
+
+	//--------------------------------プレイ画面背景画像読込---------------------------------
 	strcpy_s(ImageBack[0].image.path, IMAGE_BACK_PATH);
 	strcpy_s(ImageBack[1].image.path, IMAGE_BACK_REV_PATH);
 	strcpy_s(ImageBack[2].image.path, IMAGE_BACK_PATH);
 	strcpy_s(ImageBack[3].image.path, IMAGE_BACK_REV_PATH);
-
-	strcpy_s(ImageEndCOMP.image.path, IMAGE_END_COMP_PATH);
-	ImageEndCOMP.image.handle = LoadGraph(ImageEndCOMP.image.path);
-	if (ImageEndCOMP.image.handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), IMAGE_END_COMP_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	GetGraphSize(ImageEndCOMP.image.handle, &ImageEndCOMP.image.width, &ImageEndCOMP.image.height);
-	ImageEndCOMP.image.x = WINDOW_WIDTH / 2 - ImageEndCOMP.image.width / 2;
-
-	ImageEndCOMP.image.y = WINDOW_HEIGHT / 2 - ImageEndCOMP.image.height / 2;
-	ImageEndCOMP.Cnt = 0.0;
-	ImageEndCOMP.CntMAX = IMAGE_END_COMP_CNT_MAX;
-	ImageEndCOMP.IsDraw = FALSE;
-
-	strcpy_s(ImageEndFAIL.image.path, IMAGE_END_FAIL_PATH);
-	ImageEndFAIL.image.handle = LoadGraph(ImageEndFAIL.image.path);
-	if (ImageEndFAIL.image.handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), IMAGE_END_FAIL_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	GetGraphSize(ImageEndFAIL.image.handle, &ImageEndFAIL.image.width, &ImageEndFAIL.image.height);
-	ImageEndFAIL.image.x = WINDOW_WIDTH / 2 - ImageEndFAIL.image.width / 2;
-	ImageEndFAIL.image.y = WINDOW_HEIGHT / 2 - ImageEndFAIL.image.height / 2;
-	ImageEndFAIL.Cnt = 0.0;
-	ImageEndFAIL.CntMAX = IMAGE_END_FAIL_CNT_MAX;
-	ImageEndFAIL.IsDraw = FALSE;
 
 	for (int num = 0; num < IMAGE_BACK_NUM; num++)
 	{
@@ -2522,18 +2625,8 @@ BOOL MY_LOAD_IMAGE(VOID)
 	ImageBack[3].image.y = 0 - ImageBack[0].image.height * 3;
 	ImageBack[3].IsDraw = FALSE;
 
-	strcpy_s(ImageBack_END.path, IMAGE_BACK_PATH_END);
-	ImageBack_END.handle = LoadGraph(ImageBack_END.path);
-	if (ImageBack_END.handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), IMAGE_BACK_PATH_END, IMAGE_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-	GetGraphSize(ImageBack_END.handle, &ImageBack_END.width, &ImageBack_END.height);
-	ImageBack_END.x = GAME_WIDTH / 2 - ImageBack_END.width / 2;
-	ImageBack_END.y = GAME_HEIGHT / 2 - ImageBack_END.height / 2;
 
-
+	//--------------------------------プレイ画面プレイヤー画像読込---------------------------------
 	strcpy_s(player.image.path, IMAGE_PLAYER_PATH_YOKO);
 	player.image.handle = LoadGraph(player.image.path);
 	if (player.image.handle == -1)
@@ -2548,6 +2641,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	player.CenterY = player.image.y + player.image.height / 2;
 	player.speed = CHARA_SPEED_HIGH;
 
+	//--------------------------------プレイ画面加速アイテム使用エフェクト画像読込---------------------------------
 	strcpy_s(PlayerRed.path, IMAGE_PLAYER_PATH_RED);
 	PlayerRed.handle = LoadGraph(PlayerRed.path);
 	if (PlayerRed.handle == -1)
@@ -2557,6 +2651,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(PlayerRed.handle, &PlayerRed.width, &PlayerRed.height);
 
+	//--------------------------------プレイ画面敵画像読込---------------------------------
 	strcpy_s(enemyTemp.image.path, IMAGE_ENEMY_PATH);
 	enemyTemp.image.handle = LoadGraph(enemyTemp.image.path);
 	if (enemyTemp.image.handle == -1)
@@ -2571,6 +2666,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	enemyTemp.CenterY = enemyTemp.image.y + enemyTemp.image.height / 2;
 	enemyTemp.speed = CHARA_SPEED_LOW;
 
+	//--------------------------------プレイ画面加速アイテム画像読込---------------------------------
 	strcpy_s(itemSpeedTemp.image.path, IMAGE_ITEM_SPEED_PATH);
 	itemSpeedTemp.image.handle = LoadGraph(itemSpeedTemp.image.path);
 	if (itemSpeedTemp.image.handle == -1)
@@ -2580,6 +2676,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(itemSpeedTemp.image.handle, &itemSpeedTemp.image.width, &itemSpeedTemp.image.height);
 
+	//--------------------------------プレイ画面無敵アイテム画像読込---------------------------------
 	strcpy_s(itemMutekiTemp.image.path, IMAGE_ITEM_MUTEKI_PATH);
 	itemMutekiTemp.image.handle = LoadGraph(itemMutekiTemp.image.path);
 	if (itemMutekiTemp.image.handle == -1)
@@ -2589,6 +2686,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(itemMutekiTemp.image.handle, &itemMutekiTemp.image.width, &itemMutekiTemp.image.height);
 
+	//--------------------------------プレイ画面停止アイテム画像読込---------------------------------
 	strcpy_s(itemStopTemp.image.path, IMAGE_ITEM_STOP_PATH);
 	itemStopTemp.image.handle = LoadGraph(itemStopTemp.image.path);
 	if (itemStopTemp.image.handle == -1)
@@ -2598,6 +2696,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 	}
 	GetGraphSize(itemStopTemp.image.handle, &itemStopTemp.image.width, &itemStopTemp.image.height);
 
+	//--------------------------------プレイ画面弾画像読込---------------------------------
 	int tamaRedRes = LoadDivGraph(TAMA_RED_PATH, TAMA_DIV_NUM, TAMA_DIV_TATE, TAMA_DIV_YOKO, TAMA_DIV_WIDTH, TAMA_DIV_HEIGHT,	&tamaTemp.handle[0]);
 
 	if (tamaRedRes == -1)
@@ -2619,6 +2718,7 @@ BOOL MY_LOAD_IMAGE(VOID)
 
 	tamaTemp.speedY = CHARA_SPEED_HIGH;
 
+	//--------------------------------プレイ画面マップチップ読込---------------------------------
 	int mapRes = LoadDivGraph(
 		GAME_MAP_PATH,
 		MAP_DIV_NUM, MAP_DIV_TATE, MAP_DIV_YOKO,
@@ -2663,55 +2763,102 @@ BOOL MY_LOAD_IMAGE(VOID)
 		}
 	}
 
+	//--------------------------------エンド画面背景画像読込---------------------------------
+	strcpy_s(ImageBack_END.path, IMAGE_BACK_PATH_END);
+	ImageBack_END.handle = LoadGraph(ImageBack_END.path);
+	if (ImageBack_END.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_BACK_PATH_END, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(ImageBack_END.handle, &ImageBack_END.width, &ImageBack_END.height);
+	ImageBack_END.x = GAME_WIDTH / 2 - ImageBack_END.width / 2;
+	ImageBack_END.y = GAME_HEIGHT / 2 - ImageBack_END.height / 2;
+
+	//--------------------------------エンド画面ゲームクリア画像読込---------------------------------
+	strcpy_s(ImageEndCOMP.image.path, IMAGE_END_COMP_PATH);
+	ImageEndCOMP.image.handle = LoadGraph(ImageEndCOMP.image.path);
+	if (ImageEndCOMP.image.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_END_COMP_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(ImageEndCOMP.image.handle, &ImageEndCOMP.image.width, &ImageEndCOMP.image.height);
+	ImageEndCOMP.image.x = WINDOW_WIDTH / 2 - ImageEndCOMP.image.width / 2;
+
+	ImageEndCOMP.image.y = WINDOW_HEIGHT / 2 - ImageEndCOMP.image.height / 2;
+	ImageEndCOMP.Cnt = 0.0;
+	ImageEndCOMP.CntMAX = IMAGE_END_COMP_CNT_MAX;
+	ImageEndCOMP.IsDraw = FALSE;
+
+	//--------------------------------エンド画面ゲームオーバー画像読込---------------------------------
+	strcpy_s(ImageEndFAIL.image.path, IMAGE_END_FAIL_PATH);
+	ImageEndFAIL.image.handle = LoadGraph(ImageEndFAIL.image.path);
+	if (ImageEndFAIL.image.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), IMAGE_END_FAIL_PATH, IMAGE_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+	GetGraphSize(ImageEndFAIL.image.handle, &ImageEndFAIL.image.width, &ImageEndFAIL.image.height);
+	ImageEndFAIL.image.x = WINDOW_WIDTH / 2 - ImageEndFAIL.image.width / 2;
+	ImageEndFAIL.image.y = WINDOW_HEIGHT / 2 - ImageEndFAIL.image.height / 2;
+	ImageEndFAIL.Cnt = 0.0;
+	ImageEndFAIL.CntMAX = IMAGE_END_FAIL_CNT_MAX;
+	ImageEndFAIL.IsDraw = FALSE;
+
 	return(TRUE);
 }
 
 VOID MY_DELETE_IMAGE(VOID)
 {
-	for (int num = 0; num < IMAGE_BACK_NUM; num++)
-	{
-		DeleteGraph(ImageBack[0].image.handle);
-	}
-
-	DeleteGraph(ImageBack_END.handle);
-	DeleteGraph(player.image.handle);
-
-	DeleteGraph(PlayerRed.handle);
-
-	DeleteGraph(enemyTemp.image.handle);
-	for (int i = 0; i < (int)enemy.size(); i++)DeleteGraph(enemy[i].image.handle);
-
+	//--------------------------------タイトル画面背景画像削除---------------------------------
 	DeleteGraph(ImageTitleBK.handle);
+	//--------------------------------タイトル画面ロゴ画像削除---------------------------------
 	DeleteGraph(ImageTitleROGO.image.handle);
+	//--------------------------------タイトル画面プレイボタン画像削除---------------------------------
 	DeleteGraph(ImageTitleButtonPlay.handle);
+	//--------------------------------タイトル画面ルールボタン画像削除---------------------------------
 	DeleteGraph(ImageTitleButtonRule.handle);
+	//--------------------------------タイトル画面終了ボタン画像削除---------------------------------
 	DeleteGraph(ImageTitleButtonEnd.handle);
+	//--------------------------------タイトル画面ボタン選択枠画像削除---------------------------------
 	DeleteGraph(ImageTitleButtonNow.handle);
 
-	DeleteGraph(ImageEndCOMP.image.handle);
-	DeleteGraph(ImageEndFAIL.image.handle);
 
+	//--------------------------------プレイ画面プレイヤー画像削除---------------------------------
+	DeleteGraph(player.image.handle);
+	//--------------------------------プレイ画面加速アイテム使用エフェクト画像削除---------------------------------
+	DeleteGraph(PlayerRed.handle);
+	//--------------------------------プレイ画面敵画像削除---------------------------------
+	DeleteGraph(enemyTemp.image.handle);
+	for (int i = 0; i < (int)enemy.size(); i++)DeleteGraph(enemy[i].image.handle);
+	//--------------------------------プレイ画面背景画像削除---------------------------------
+	for (int num = 0; num < IMAGE_BACK_NUM; num++) { DeleteGraph(ImageBack[0].image.handle); }
+	//--------------------------------プレイ画面加速アイテム画像削除---------------------------------
 	DeleteGraph(itemSpeedTemp.image.handle);
+	//--------------------------------プレイ画面無敵アイテム画像削除---------------------------------
 	DeleteGraph(itemMutekiTemp.image.handle);
+	//--------------------------------プレイ画面停止アイテム画像削除---------------------------------
 	DeleteGraph(itemStopTemp.image.handle);
-
+	//--------------------------------プレイ画面弾画像削除---------------------------------
 	for (int i_num = 0; i_num < TAMA_DIV_NUM; i_num++) { DeleteGraph(tamaTemp.handle[i_num]); }
-
+	//--------------------------------プレイ画面加速マップチップ削除---------------------------------
 	for (int i_num = 0; i_num < MAP_DIV_NUM; i_num++) { DeleteGraph(mapChip.handle[i_num]); }
+
+
+	//--------------------------------エンド画面背景画像削除---------------------------------
+	DeleteGraph(ImageBack_END.handle);
+	//--------------------------------エンド画面ゲームクリア画像削除---------------------------------
+	DeleteGraph(ImageEndCOMP.image.handle);
+	//--------------------------------エンド画面ゲームオーバー画像削除---------------------------------
+	DeleteGraph(ImageEndFAIL.image.handle);
 
 	return;
 }
 
 BOOL MY_LOAD_MUSIC(VOID)
 {
-	strcpy_s(BGM.path, MUSIC_BGM_PATH);
-	BGM.handle = LoadSoundMem(BGM.path);
-	if (BGM.handle == -1)
-	{
-		MessageBox(GetMainWindowHandle(), MUSIC_BGM_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
-		return(FALSE);
-	}
-
+	//--------------------------------タイトル画面BGM音声読込---------------------------------
 	strcpy_s(BGM_TITLE.path, MUSIC_BGM_PATH_TITLE);
 	BGM_TITLE.handle = LoadSoundMem(BGM_TITLE.path);
 	if (BGM_TITLE.handle == -1)
@@ -2720,6 +2867,18 @@ BOOL MY_LOAD_MUSIC(VOID)
 		return(FALSE);
 	}
 
+
+	//--------------------------------プレイ画面BGM音声読込---------------------------------
+	strcpy_s(BGM.path, MUSIC_BGM_PATH);
+	BGM.handle = LoadSoundMem(BGM.path);
+	if (BGM.handle == -1)
+	{
+		MessageBox(GetMainWindowHandle(), MUSIC_BGM_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
+		return(FALSE);
+	}
+
+
+	//--------------------------------エンド画面ゲームクリアBGM音声読込---------------------------------
 	strcpy_s(BGM_COMP.path, MUSIC_BGM_COMP_PATH);
 	BGM_COMP.handle = LoadSoundMem(BGM_COMP.path);
 	if (BGM_COMP.handle == -1)
@@ -2727,7 +2886,7 @@ BOOL MY_LOAD_MUSIC(VOID)
 		MessageBox(GetMainWindowHandle(), MUSIC_BGM_COMP_PATH, MUSIC_LOAD_ERR_TITLE, MB_OK);
 		return(FALSE);
 	}
-
+	//--------------------------------エンド画面ゲームオーバーBGM音声読込---------------------------------
 	strcpy_s(BGM_FAIL.path, MUSIC_BGM_FAIL_PATH);
 	BGM_FAIL.handle = LoadSoundMem(BGM_FAIL.path);
 	if (BGM_FAIL.handle == -1)
@@ -2741,9 +2900,13 @@ BOOL MY_LOAD_MUSIC(VOID)
 
 VOID MY_DELETE_MUSIC(VOID)
 {
-	DeleteSoundMem(BGM.handle);
+	//--------------------------------タイトル画面BGM音声削除---------------------------------
 	DeleteSoundMem(BGM_TITLE.handle);
+	//--------------------------------プレイ画面BGM音声削除---------------------------------
+	DeleteSoundMem(BGM.handle);
+	//--------------------------------エンド画面ゲームクリアBGM音声削除---------------------------------
 	DeleteSoundMem(BGM_COMP.handle);
+	//--------------------------------エンド画面ゲームオーバーBGM音声削除---------------------------------
 	DeleteSoundMem(BGM_FAIL.handle);
 
 	return;

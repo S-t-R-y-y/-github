@@ -183,6 +183,13 @@ enum ITEM_TYPE
 	ITEM_STOP = 2
 };
 
+enum BUTTON_TITLE
+{
+	BUTTON_START = 0,
+	BUTTON_RULE = 1,
+	BUTTON_END = 2
+};
+
 typedef struct STRUCT_I_POINT
 {
 	int x = -1;
@@ -407,6 +414,8 @@ vector<ITEM> itemSpeed;
 vector<ITEM> itemMuteki;
 vector<ITEM> itemStop;
 
+int ChukanPoint = -1;
+
 GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 {
 	{
@@ -504,7 +513,7 @@ GAME_MAP_KIND mapData[GAME_MAP_PART_MAX][GAME_MAP_TATE_MAX][GAME_MAP_YOKO_MAX] =
 		k,t,t,t,t,k,k,t,t,t,t,t,t,t,k,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,h,h,h,t,k,t,t,t,e,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
-		k,k,k,t,k,k,k,k,k,k,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
+		k,k,k,t,k,k,k,k,k,k,p,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,k,k,k,k,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
 		k,t,t,t,t,t,t,t,t,t,t,t,k,t,t,t,t,t,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,k,
@@ -1023,7 +1032,7 @@ VOID MY_START_PROC(VOID)
 		//--------------------------------ボタン選択処理---------------------------------
 		switch (NowChoice)
 		{
-		case 0:
+		case BUTTON_START:
 			//--------------------------------プレイ画面初期化・遷移---------------------------------
 			GameEndKind = GAME_END_FAIL;
 			GameScene = GAME_SCENE_PLAY;
@@ -1035,14 +1044,25 @@ VOID MY_START_PROC(VOID)
 
 			SetMouseDispFlag(FALSE);
 
-			Scroll = mapScroll[0];
-
-			player.CenterX = startPt.x;
-			player.CenterY = startPt.y;
-			player.Part = startPt.part;
+			//中間ポイント未到達時初期位置設定
+			if (ChukanPoint == -1)
+			{
+				player.CenterX = startPt.x;
+				player.CenterY = startPt.y;
+				player.Part = startPt.part;
+			}
+			//中間ポイント到達時初期位置設定
+			else
+			{
+				player.CenterX = ToWarp[ChukanPoint].x;
+				player.CenterY = ToWarp[ChukanPoint].y;
+				player.Part = ToWarp[ChukanPoint].part;
+			}
 
 			player.image.x = player.CenterX;
 			player.image.y = player.CenterY;
+
+			Scroll = mapScroll[ChukanPoint + 1];
 
 			player.JumpCou = 0;
 			player.JumpFlg = FALSE;
@@ -1106,12 +1126,12 @@ VOID MY_START_PROC(VOID)
 			}
 			break;
 
-		case 1:
+		case BUTTON_RULE:
 			//--------------------------------ルール画面遷移---------------------------------
 			GameScene = GAME_SCENE_RULE;
 			break;
 
-		case 2:
+		case BUTTON_END:
 			//--------------------------------ゲームループ終了処理---------------------------------
 			GameLoop = FALSE;
 			itemSpeed.clear();
@@ -2414,7 +2434,11 @@ VOID MY_END_PROC(VOID)
 
 		GameScene = GAME_SCENE_START;
 
+		//敵の初期化
 		enemy.clear();
+
+		//中間ポイントの設定
+		ChukanPoint = player.Part - 1;
 
 		return;
 	}

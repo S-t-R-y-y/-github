@@ -59,10 +59,10 @@
 
 #define MUSIC_LOAD_ERR_TITLE	TEXT("音楽読み込みエラー")
 
-#define MUSIC_BGM_PATH_TITLE		TEXT(".\\MUSIC\\働くオバケ.mp3")
-#define MUSIC_BGM_PATH				TEXT(".\\MUSIC\\Atomic_World.mp3")
-#define MUSIC_BGM_COMP_PATH			TEXT(".\\MUSIC\\Faster_Snow_Wing.mp3")
-#define MUSIC_BGM_FAIL_PATH			TEXT(".\\MUSIC\\Streets_of_Dawn.mp3")
+#define MUSIC_BGM_PATH_TITLE		TEXT(".\\MUSIC\\DBGM05.wav")
+#define MUSIC_BGM_PATH				TEXT(".\\MUSIC\\02.wav")
+#define MUSIC_BGM_COMP_PATH			TEXT(".\\MUSIC\\06.wav")
+#define MUSIC_BGM_FAIL_PATH			TEXT(".\\MUSIC\\DBGM02.wav")
 
 #define MUSIC_PLAYER_SHOT_MAX	4
 #define MUSIC_PLAYER_SHOT_PATH_1	TEXT(".\\MUSIC\\ショット音.mp3")
@@ -632,7 +632,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	if (MY_LOAD_IMAGE() == -1) { return(-1); }
 	if (MY_LOAD_MUSIC() == -1) { return(-1); }
 
-	SetMouseDispFlag(TRUE);
+	SetMouseDispFlag(FALSE);
 
 	GameScene = GAME_SCENE_START;
 
@@ -994,7 +994,7 @@ VOID MY_START_PROC(VOID)
 	//--------------------------------BGM再生---------------------------------
 	if (CheckSoundMem(BGM_TITLE.handle) == 0)
 	{
-		ChangeVolumeSoundMem(255 * 75 / 100, BGM_TITLE.handle);
+		ChangeVolumeSoundMem(255 * 90 / 100, BGM_TITLE.handle);
 		PlaySoundMem(BGM_TITLE.handle, DX_PLAYTYPE_LOOP);
 	}
 
@@ -1251,7 +1251,7 @@ VOID MY_PLAY_PROC(VOID)
 			StopSoundMem(BGM.handle);
 		}
 
-		SetMouseDispFlag(TRUE);
+		SetMouseDispFlag(FALSE);
 		GameEndKind = GAME_END_FAIL;
 		GameScene = GAME_SCENE_END;
 
@@ -1291,7 +1291,7 @@ VOID MY_PLAY_PROC(VOID)
 		{
 			iPOINT R_ClickPt = mouse.Point;
 
-			SetMouseDispFlag(TRUE);
+			SetMouseDispFlag(FALSE);
 
 			int Ret = MessageBox(GetMainWindowHandle(), MOUSE_R_CLICK_CAPTION, MOUSE_R_CLICK_TITLE, MB_YESNO);
 
@@ -1302,7 +1302,7 @@ VOID MY_PLAY_PROC(VOID)
 					StopSoundMem(BGM.handle);
 				}
 
-				SetMouseDispFlag(TRUE);
+				SetMouseDispFlag(FALSE);
 
 				GameScene = GAME_SCENE_START;
 				return;
@@ -1563,7 +1563,7 @@ VOID MY_PLAY_PROC(VOID)
 				StopSoundMem(BGM.handle);
 			}
 
-			SetMouseDispFlag(TRUE);
+			SetMouseDispFlag(FALSE);
 
 			GameEndKind = GAME_END_COMP;
 
@@ -1616,7 +1616,7 @@ VOID MY_PLAY_PROC(VOID)
 					StopSoundMem(BGM.handle);
 				}
 
-				SetMouseDispFlag(TRUE);
+				SetMouseDispFlag(FALSE);
 
 				GameEndKind = GAME_END_FAIL;
 
@@ -1704,7 +1704,7 @@ VOID MY_PLAY_PROC(VOID)
 						{
 							StopSoundMem(BGM.handle);
 						}
-						SetMouseDispFlag(TRUE);
+						SetMouseDispFlag(FALSE);
 
 						GameEndKind = GAME_END_FAIL;
 
@@ -1740,7 +1740,7 @@ VOID MY_PLAY_PROC(VOID)
 				StopSoundMem(BGM.handle);
 			}
 
-			SetMouseDispFlag(TRUE);
+			SetMouseDispFlag(FALSE);
 
 			GameEndKind = GAME_END_FAIL;
 
@@ -2310,7 +2310,7 @@ VOID MY_PLAY_DRAW(VOID)
 							StopSoundMem(BGM.handle);
 						}
 
-						SetMouseDispFlag(TRUE);
+						SetMouseDispFlag(FALSE);
 
 						GameEndKind = GAME_END_FAIL;
 
@@ -2430,7 +2430,7 @@ VOID MY_END_PROC(VOID)
 			StopSoundMem(BGM_FAIL.handle);
 		}
 
-		SetMouseDispFlag(TRUE);
+		SetMouseDispFlag(FALSE);
 
 		GameScene = GAME_SCENE_START;
 
@@ -2450,7 +2450,7 @@ VOID MY_END_PROC(VOID)
 
 		if (CheckSoundMem(BGM_COMP.handle) == 0)
 		{
-			ChangeVolumeSoundMem(255 * 50 / 100, BGM_COMP.handle);
+			ChangeVolumeSoundMem(255 * 90 / 100, BGM_COMP.handle);
 			PlaySoundMem(BGM_COMP.handle, DX_PLAYTYPE_LOOP);
 		}
 
@@ -2473,7 +2473,7 @@ VOID MY_END_PROC(VOID)
 
 		if (CheckSoundMem(BGM_FAIL.handle) == 0)
 		{
-			ChangeVolumeSoundMem(255 * 50 / 100, BGM_FAIL.handle);
+			ChangeVolumeSoundMem(255 * 90 / 100, BGM_FAIL.handle);
 
 			PlaySoundMem(BGM_FAIL.handle, DX_PLAYTYPE_LOOP);
 		}

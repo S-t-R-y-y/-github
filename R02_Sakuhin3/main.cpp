@@ -2437,9 +2437,6 @@ VOID MY_END_PROC(VOID)
 		//敵の初期化
 		enemy.clear();
 
-		//中間ポイントの設定
-		ChukanPoint = player.Part - 1;
-
 		return;
 	}
 
@@ -2466,6 +2463,10 @@ VOID MY_END_PROC(VOID)
 			}
 			ImageEndCOMP.Cnt = 0;
 		}
+
+		//中間ポイントの初期化
+		ChukanPoint = -1;
+
 		break;
 
 	//--------------------------------ゲームオーバー時処理---------------------------------
@@ -2490,6 +2491,10 @@ VOID MY_END_PROC(VOID)
 			}
 			ImageEndFAIL.Cnt = 0;
 		}
+
+		//中間ポイントの設定
+		ChukanPoint = player.Part - 1;
+
 		break;
 	}
 
